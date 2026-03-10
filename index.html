@@ -73,10 +73,11 @@
   .sidebar-actions button.pptx-btn:hover { background: #c44325; color: #fff; }
   .sidebar-actions label.btn.load-btn { border-color: #d1b43a; color: #ffe08a; }
   .sidebar-actions label.btn.load-btn:hover { background: #d1b43a; color: #1a1a6e; }
+  #excelFileInput { display: none; }
+
   .sidebar-actions small {
     color: #bdbde6; font-size: 0.62rem; line-height: 1.35; margin-top: 3px;
   }
-  #excelFileInput { display: none; }
 
   /* Main */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -91,7 +92,7 @@
   .content::-webkit-scrollbar { width: 6px; }
   .content::-webkit-scrollbar-thumb { background: #c8c0b0; border-radius: 3px; }
 
-  /* Domain grid (compact) */
+  /* Panels */
   .panel-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .panel-title-row h2 { font-size: 1.05rem; }
   .panel-title-row .edit-name-btn {
@@ -152,9 +153,7 @@
   .context-body ul { list-style: disc; padding-left: 14px; margin-bottom: 4px; }
   .context-body ul li { font-size: 0.65rem; line-height: 1.45; color: #333; }
   .context-body ol { padding-left: 14px; margin-bottom: 6px; counter-reset: anchor-counter; list-style: none; }
-  .context-body ol li {
-    font-size: 0.65rem; line-height: 1.45; color: #333; counter-increment: anchor-counter;
-  }
+  .context-body ol li { font-size: 0.65rem; line-height: 1.45; color: #333; counter-increment: anchor-counter; }
   .context-body ol li::before { content: counter(anchor-counter) ". "; font-weight: 700; color: #1a1a6e; }
 
   .domain-body { padding: 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: auto; }
@@ -206,10 +205,7 @@
 
   .summary-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
   .summary-table th, .summary-table td { padding: 7px 8px; text-align: left; border-bottom: 1px solid #d4cfc5; }
-  .summary-table th {
-    background: #1a1a6e; color: #fff; font-weight: 600; font-size: 0.68rem;
-    position: sticky; top: 0;
-  }
+  .summary-table th { background: #1a1a6e; color: #fff; font-weight: 600; font-size: 0.68rem; position: sticky; top: 0; }
   .summary-table td:nth-child(n+2), .summary-table th:nth-child(n+2) { text-align: center; }
   .summary-table tbody tr:hover { background: #f5f0e6; }
 
@@ -228,7 +224,6 @@
   .legend .rag-label-amber { color: #e6a400; font-weight: 700; }
   .legend .rag-label-green { color: #2e7d32; font-weight: 700; }
 
-  /* Lightweight toast */
   .toast {
     position: fixed; bottom: 14px; right: 14px;
     background: #1a1a6e; color: #fff;
@@ -262,22 +257,17 @@
 </div>
 
 <div id="toast" class="toast"></div>
-
 <input id="excelFileInput" type="file" accept=".xlsx,.xls" />
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  DATA
-// ══════════════════════════════════════════════════════════
 const DOMAINS = [
-  {
-    id: 1, name: "Forums & Governance", barClass: "bar-1",
-    criteria: [
+  { id:1, name:"Forums & Governance", barClass:"bar-1",
+    criteria:[
       "Regular EO/Governance forum exists",
       "Forum / EO pack addresses mandatory criteria / artefacts",
       "VMF oriented decisions, discussions, direction evidenced and traced"
     ],
-    anchors: [
+    anchors:[
       "No VMF forum or governance evidence",
       "Forum exists but irregular; decisions not evidenced",
       "Regular forum; minutes; VMF sometimes used",
@@ -285,14 +275,13 @@ const DOMAINS = [
       "Actively enforces VMF principles/method; good momentum, outcomes traced"
     ]
   },
-  {
-    id: 2, name: "VMF Prioritisation & Investment Decisions", barClass: "bar-2",
-    criteria: [
+  { id:2, name:"VMF Prioritisation & Investment Decisions", barClass:"bar-2",
+    criteria:[
       "Evidence of highest-value prioritisation across charters",
       "Reprioritisation incl. descoping based on charter performance",
       "Investment decisions & actions registered in EO pack"
     ],
-    anchors: [
+    anchors:[
       "No prioritisation approach",
       "Narrative or ad hoc prioritisation",
       "VMF prioritisation metrics for most initiatives",
@@ -300,14 +289,13 @@ const DOMAINS = [
       "Continuous and traceable prioritisation aligned to optimal value"
     ]
   },
-  {
-    id: 3, name: "Required Artefacts & SharePoint Hub Hygiene", barClass: "bar-3",
-    criteria: [
+  { id:3, name:"Required Artefacts & SharePoint Hub Hygiene", barClass:"bar-3",
+    criteria:[
       "Required VMF artefacts present (Charter, Business Case etc)",
       "Versioning / approval visible",
       "Registers maintained (supporting artefacts, outcomes updated)"
     ],
-    anchors: [
+    anchors:[
       "Artefacts missing or scattered",
       "Partial / inconsistent artefacts",
       "Artefacts complete for most initiatives",
@@ -315,15 +303,14 @@ const DOMAINS = [
       "Exemplary hygiene; high transparency"
     ]
   },
-  {
-    id: 4, name: "Lifecycle & Gate Compliance", barClass: "bar-4",
-    criteria: [
+  { id:4, name:"Lifecycle & Gate Compliance", barClass:"bar-4",
+    criteria:[
       "Lifecycle stages / gates defined & used",
       "Gate approvals evidenced",
       "Benefits & value revisited at gates",
       "Evidence of pause / stop / re-scope"
     ],
-    anchors: [
+    anchors:[
       "No lifecycle gates evidenced",
       "Gate process exists, inconsistently applied",
       "Gates followed; approvals stored",
@@ -331,14 +318,13 @@ const DOMAINS = [
       "Lifecycle discipline drives optimisation"
     ]
   },
-  {
-    id: 5, name: "Roles, Capability & Accountability", barClass: "bar-5",
-    criteria: [
+  { id:5, name:"Roles, Capability & Accountability", barClass:"bar-5",
+    criteria:[
       "Named VMF roles assigned",
       "Right people attend forums and support decisions",
       "VMF actions have owners & due dates (e.g. completing outcomes etc)"
     ],
-    anchors: [
+    anchors:[
       "No roles or accountability evidenced",
       "Roles are nominal; inconsistent engagement",
       "Roles assigned and operating",
@@ -349,80 +335,49 @@ const DOMAINS = [
 ];
 
 let portfolios = [
-  { name: "Growth", scores: [3,3,3,3,3] },
-  { name: "Digital Sales & Service (DSS)", scores: [3,3,3,3,3] },
-  { name: "Marketing (Media & Offers)", scores: [3,3,3,3,3] },
-  { name: "Customer Loyalty Platform (CLP)", scores: [3,3,3,3,3] },
-  { name: "Pricing (incl. PSE)", scores: [3,3,3,3,3] },
-  { name: "Next Evolution of Claims (NEOC)", scores: [3,3,3,3,3] },
-  { name: "Customer Communications", scores: [3,3,3,3,3] },
-  { name: "Strategic Transformation", scores: [3,3,3,3,3] },
-  { name: "Growth Office / Retail Growth Office", scores: [3,3,3,3,3] },
-  { name: "Strategic Enablement (Portfolio Exec & Gov)", scores: [3,3,3,3,3] }
+  { name:"Growth", scores:[3,3,3,3,3] },
+  { name:"Digital Sales & Service (DSS)", scores:[3,3,3,3,3] },
+  { name:"Marketing (Media & Offers)", scores:[3,3,3,3,3] },
+  { name:"Customer Loyalty Platform (CLP)", scores:[3,3,3,3,3] },
+  { name:"Pricing (incl. PSE)", scores:[3,3,3,3,3] },
+  { name:"Next Evolution of Claims (NEOC)", scores:[3,3,3,3,3] },
+  { name:"Customer Communications", scores:[3,3,3,3,3] },
+  { name:"Strategic Transformation", scores:[3,3,3,3,3] },
+  { name:"Growth Office / Retail Growth Office", scores:[3,3,3,3,3] },
+  { name:"Strategic Enablement (Portfolio Exec & Gov)", scores:[3,3,3,3,3] }
 ];
 
-// ══════════════════════════════════════════════════════════
-//  UTILITY
-// ══════════════════════════════════════════════════════════
-function rag(s) {
-  if (s < 2.5) return { label:"Red", cls:"rag-red" };
-  if (s < 3.5) return { label:"Amber", cls:"rag-amber" };
-  return { label:"Green", cls:"rag-green" };
-}
-function barWidth(s) { return ((s/5)*100).toFixed(1)+"%"; }
-function ragColor(cls) { return cls==="rag-red"?"#d32f2f":cls==="rag-amber"?"#e6a400":"#2e7d32"; }
-function ragDotColor(s) { return s<2.5?"#d32f2f":s<3.5?"#f9a825":"#2e7d32"; }
-function pAvg(pi) {
-  const s=portfolios[pi].scores;
-  return s.reduce((a,b)=>a+b,0)/s.length;
-}
-function grandAvg() {
-  if (!portfolios.length) return 0;
-  return portfolios.reduce((sum,_,pi)=>sum+pAvg(pi),0)/portfolios.length;
-}
-function toast(msg, kind="") {
-  const el = document.getElementById("toast");
-  el.className = "toast" + (kind ? " " + kind : "");
-  el.textContent = msg;
-  el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"), 3200);
-}
-function clampScore(x) {
-  if (!isFinite(x)) return 3;
-  return Math.min(5, Math.max(1, x));
-}
-function safeSheetName(name) {
-  return String(name || "Sheet").replace(/[\\\/\?\*\[\]:]/g, "").substring(0, 31);
-}
+// Utility
+function rag(s){ if(s<2.5) return {label:"Red",cls:"rag-red"}; if(s<3.5) return {label:"Amber",cls:"rag-amber"}; return {label:"Green",cls:"rag-green"}; }
+function barWidth(s){ return ((s/5)*100).toFixed(1)+"%"; }
+function ragColor(cls){ return cls==="rag-red"?"#d32f2f":cls==="rag-amber"?"#e6a400":"#2e7d32"; }
+function ragDotColor(s){ return s<2.5?"#d32f2f":s<3.5?"#f9a825":"#2e7d32"; }
+function pAvg(pi){ const s=portfolios[pi].scores; return s.reduce((a,b)=>a+b,0)/s.length; }
+function grandAvg(){ if(!portfolios.length) return 0; return portfolios.reduce((sum,_,pi)=>sum+pAvg(pi),0)/portfolios.length; }
+function clampScore(x){ if(!isFinite(x)) return 3; return Math.min(5,Math.max(1,x)); }
+function safeSheetName(name){ return String(name||"Sheet").replace(/[\\\/\?\*\[\]:]/g,"").substring(0,31); }
+function toast(msg,kind=""){ const el=document.getElementById("toast"); el.className="toast"+(kind?" "+kind:""); el.textContent=msg; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),3200); }
 
-// ══════════════════════════════════════════════════════════
-//  RENDER
-// ══════════════════════════════════════════════════════════
-let currentTab = 0; // index < portfolios.length = portfolio, === portfolios.length = overall
+// Render
+let currentTab=0; // 0..portfolios-1 portfolio, == portfolios.length overall
+function render(){ if(currentTab>portfolios.length) currentTab=portfolios.length; renderSidebar(); renderContent(); }
 
-function render() {
-  if (currentTab > portfolios.length) currentTab = portfolios.length;
-  renderSidebar();
-  renderContent();
-}
+function renderSidebar(){
+  const list=document.getElementById("sidebarList");
+  const actions=document.getElementById("sidebarActions");
+  list.innerHTML="";
 
-function renderSidebar() {
-  const list = document.getElementById("sidebarList");
-  const actions = document.getElementById("sidebarActions");
-  list.innerHTML = "";
+  portfolios.forEach((p,pi)=>{
+    const avg=pAvg(pi);
+    const item=document.createElement("div");
+    item.className="sidebar-item"+(pi===currentTab?" active":"");
+    item.onclick=()=>{ currentTab=pi; render(); };
 
-  portfolios.forEach((p, pi) => {
-    const avg = pAvg(pi);
-    const item = document.createElement("div");
-    item.className = "sidebar-item" + (pi===currentTab?" active":"");
-    item.onclick = () => { currentTab=pi; render(); };
-
-    let closeBtn = "";
-    if (portfolios.length > 1) {
-      closeBtn = `<button class="item-close" title="Remove" onclick="event.stopPropagation();removePortfolio(${pi})">✕</button>`;
+    let closeBtn="";
+    if(portfolios.length>1){
+      closeBtn=`<button class="item-close" title="Remove" onclick="event.stopPropagation();removePortfolio(${pi})">✕</button>`;
     }
-
-    item.innerHTML = `
+    item.innerHTML=`
       <span class="rag-dot" style="background:${ragDotColor(avg)}"></span>
       <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${p.name}</span>
       <span style="font-size:0.68rem;font-weight:700;color:${ragDotColor(avg)};flex-shrink:0">${avg.toFixed(1)}</span>
@@ -430,22 +385,29 @@ function renderSidebar() {
     list.appendChild(item);
   });
 
-  const div = document.createElement("div");
-  div.className = "sidebar-divider";
+  const div=document.createElement("div");
+  div.className="sidebar-divider";
   list.appendChild(div);
 
-  const ga = grandAvg();
-  const oItem = document.createElement("div");
-  oItem.className = "sidebar-item overall-item" + (currentTab===portfolios.length?" active":"");
-  oItem.onclick = () => { currentTab=portfolios.length; render(); };
-  oItem.innerHTML = `
+  const ga=grandAvg();
+  const oItem=document.createElement("div");
+  oItem.className="sidebar-item overall-item"+(currentTab===portfolios.length?" active":"");
+  oItem.onclick=()=>{ currentTab=portfolios.length; render(); };
+  oItem.innerHTML=`
     <span style="flex:1">📊 Overall Summary</span>
     <span style="font-size:0.68rem;font-weight:700;color:${ragDotColor(ga)};flex-shrink:0">${ga.toFixed(1)}</span>`;
   list.appendChild(oItem);
 
-  actions.innerHTML = `
+  // Add portfolio directly under Overall Summary (per request)
+  const addItem=document.createElement("div");
+  addItem.className="sidebar-item";
+  addItem.onclick=()=>addPortfolio();
+  addItem.innerHTML=`<span style="flex:1;color:#c8c8e8;font-weight:700">+ Add Portfolio</span>`;
+  list.appendChild(addItem);
+
+  // Buttons order: (top->bottom) Load Excel, Export Excel, Export PPT (Load just above Export Excel)
+  actions.innerHTML=`
     <label class="btn load-btn" for="excelFileInput">📂 Load from Excel</label>
-    <button onclick="addPortfolio()">+ Add Portfolio</button>
     <button class="excel-btn" onclick="exportToExcel()">📥 Export to Excel</button>
     <button class="pptx-btn" onclick="exportToPptx()">📊 Export to PowerPoint</button>
     <small>
@@ -454,33 +416,28 @@ function renderSidebar() {
     </small>`;
 }
 
-// Panels
-function renderContent() {
-  const content = document.getElementById("content");
-  content.innerHTML = "";
+function renderContent(){
+  const content=document.getElementById("content");
+  content.innerHTML="";
 
-  if (currentTab === portfolios.length) {
-    content.innerHTML = buildOverallHTML();
+  if(currentTab===portfolios.length){
+    content.innerHTML=buildOverallHTML();
     return;
   }
 
-  const pi = currentTab;
-  const p = portfolios[pi];
-
-  let html = `
+  const pi=currentTab, p=portfolios[pi];
+  let html=`
     <div class="panel-title-row">
       <h2>${p.name}</h2>
       <button class="edit-name-btn" onclick="renamePortfolio(${pi})">✏️ Rename</button>
     </div>
     <div class="domain-grid">`;
 
-  DOMAINS.forEach((d,di) => {
-    const sid = `p${pi}_d${d.id}`;
-    const tid = `toggle_${sid}`;
-    const score = p.scores[di];
-    const r = rag(score);
+  DOMAINS.forEach((d,di)=>{
+    const sid=`p${pi}_d${d.id}`, tid=`toggle_${sid}`;
+    const score=p.scores[di], r=rag(score);
 
-    html += `
+    html+=`
       <div class="domain-card">
         <div class="domain-header">${d.id}. ${d.name}</div>
         <div class="domain-bar ${d.barClass}" id="${sid}_bar" style="width:${barWidth(score)}"></div>
@@ -510,10 +467,10 @@ function renderContent() {
         </div>
       </div>`;
   });
-  html += `</div>`;
+  html+=`</div>`;
 
-  const avg = pAvg(pi); const ra = rag(avg);
-  html += `
+  const avg=pAvg(pi), ra=rag(avg);
+  html+=`
     <div class="overall-score-section">
       <h3>${p.name} — Overall</h3>
       <div>
@@ -531,29 +488,29 @@ function renderContent() {
       <span class="rag-label-green">GREEN</span> ≥ 3.5
     </div>`;
 
-  content.innerHTML = html;
+  content.innerHTML=html;
 }
 
-function buildOverallHTML() {
-  let h = `<h2 style="font-size:1.05rem;margin-bottom:12px;">Overall Summary — All Portfolios</h2>`;
-  h += `<div style="overflow-x:auto"><table class="summary-table"><thead><tr><th>Portfolio</th>`;
-  DOMAINS.forEach(d => { h += `<th title="${d.name}">D${d.id}</th>`; });
-  h += `<th>Avg</th><th>RAG</th></tr></thead><tbody>`;
+function buildOverallHTML(){
+  let h=`<h2 style="font-size:1.05rem;margin-bottom:12px;">Overall Summary — All Portfolios</h2>`;
+  h+=`<div style="overflow-x:auto"><table class="summary-table"><thead><tr><th>Portfolio</th>`;
+  DOMAINS.forEach(d=>{ h+=`<th title="${d.name}">D${d.id}</th>`; });
+  h+=`<th>Avg</th><th>RAG</th></tr></thead><tbody>`;
 
-  portfolios.forEach((p,pi) => {
-    const avg = pAvg(pi); const r = rag(avg);
-    h += `<tr style="cursor:pointer" onclick="currentTab=${pi};render()"><td style="font-weight:600">${p.name}</td>`;
-    p.scores.forEach(s => {
-      const sr = rag(s);
-      h += `<td style="color:${ragColor(sr.cls)};font-weight:600">${s.toFixed(1)}</td>`;
+  portfolios.forEach((p,pi)=>{
+    const avg=pAvg(pi), r=rag(avg);
+    h+=`<tr style="cursor:pointer" onclick="currentTab=${pi};render()"><td style="font-weight:600">${p.name}</td>`;
+    p.scores.forEach(s=>{
+      const sr=rag(s);
+      h+=`<td style="color:${ragColor(sr.cls)};font-weight:600">${s.toFixed(1)}</td>`;
     });
-    h += `<td style="font-weight:800;color:${ragColor(r.cls)}">${avg.toFixed(1)}</td>`;
-    h += `<td><span class="rag-badge ${r.cls}">${r.label}</span></td></tr>`;
+    h+=`<td style="font-weight:800;color:${ragColor(r.cls)}">${avg.toFixed(1)}</td>`;
+    h+=`<td><span class="rag-badge ${r.cls}">${r.label}</span></td></tr>`;
   });
-  h += `</tbody></table></div>`;
+  h+=`</tbody></table></div>`;
 
-  const ga = grandAvg(); const gr = rag(ga);
-  h += `
+  const ga=grandAvg(), gr=rag(ga);
+  h+=`
     <div class="grand-overall">
       <h3>Grand Overall VMF Maturity Score</h3>
       <div>
@@ -571,18 +528,15 @@ function buildOverallHTML() {
   return h;
 }
 
-// ══════════════════════════���═══════════════════════════════
-//  INTERACTIONS
-// ══════════════════════════════════════════════════════════
-function toggleCtx(tid) {
+// Interactions
+function toggleCtx(tid){
   const b=document.getElementById(tid), d=document.getElementById(tid+"_body");
   if(b) b.classList.toggle("open");
   if(d) d.classList.toggle("open");
 }
-
-function updateScore(pi, di, val) {
-  val = clampScore(parseFloat(val));
-  portfolios[pi].scores[di] = val;
+function updateScore(pi,di,val){
+  val=clampScore(parseFloat(val));
+  portfolios[pi].scores[di]=val;
 
   const sid=`p${pi}_d${DOMAINS[di].id}`, r=rag(val);
   const v=document.getElementById(sid+"_val"), badge=document.getElementById(sid+"_rag"), br=document.getElementById(sid+"_bar");
@@ -597,30 +551,144 @@ function updateScore(pi, di, val) {
 
   renderSidebar();
 }
-
-function resetPortfolio(pi) { portfolios[pi].scores=[3,3,3,3,3]; render(); }
-
-function renamePortfolio(pi) {
+function resetPortfolio(pi){ portfolios[pi].scores=[3,3,3,3,3]; render(); }
+function renamePortfolio(pi){
   const n=prompt("Enter new portfolio name:",portfolios[pi].name);
-  if(n&&n.trim()){portfolios[pi].name=n.trim();render();}
+  if(n&&n.trim()){ portfolios[pi].name=n.trim(); render(); }
 }
-
-function addPortfolio() {
+function addPortfolio(){
   const n=prompt("Enter portfolio name:","New Portfolio");
-  if(n&&n.trim()){portfolios.push({name:n.trim(),scores:[3,3,3,3,3]});currentTab=portfolios.length-1;render();}
+  if(n&&n.trim()){
+    portfolios.push({name:n.trim(),scores:[3,3,3,3,3]});
+    currentTab=portfolios.length-1;
+    render();
+  }
 }
-
-function removePortfolio(pi) {
-  if(portfolios.length<=1)return;
-  if(!confirm(`Remove "${portfolios[pi].name}"?`))return;
+function removePortfolio(pi){
+  if(portfolios.length<=1) return;
+  if(!confirm(`Remove "${portfolios[pi].name}"?`)) return;
   portfolios.splice(pi,1);
-  if(currentTab>=portfolios.length)currentTab=portfolios.length-1;
+  if(currentTab>=portfolios.length) currentTab=portfolios.length-1;
   render();
 }
 
-// ════════���═════════════════════════════════════════════════
-//  EXCEL EXPORT
-// ══════════════════════════════════════════════════════════
+// Excel Import (Load)
+document.getElementById("excelFileInput").addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+
+  try {
+    const ab = await file.arrayBuffer();
+    const wb = XLSX.read(ab, { type: "array" });
+
+    const summarySheetName = wb.SheetNames.find(n => n.trim().toLowerCase() === "overall summary");
+    if (summarySheetName) {
+      const loaded = loadFromOverallSummarySheet(wb, summarySheetName);
+      if (loaded) {
+        toast(`Loaded ${portfolios.length} portfolios from "${summarySheetName}".`);
+        currentTab = 0;
+        render();
+        return;
+      }
+    }
+
+    const loaded2 = loadFromPerPortfolioSheets(wb);
+    if (loaded2) {
+      toast(`Loaded ${portfolios.length} portfolios from workbook sheets.`);
+      currentTab = 0;
+      render();
+      return;
+    }
+
+    toast("Could not recognise this Excel format. Please load a file exported by this tool.", "warn");
+  } catch (err) {
+    console.error(err);
+    toast("Failed to load Excel file. Please try again or re-export and reload.", "err");
+  }
+});
+
+function loadFromOverallSummarySheet(wb, sheetName) {
+  const ws = wb.Sheets[sheetName];
+  if (!ws) return false;
+
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+  if (!rows || rows.length < 2) return false;
+
+  let headerRowIndex = -1;
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+    const row = rows[i].map(v => String(v || "").toLowerCase().trim());
+    if (row.some(c => c.includes("portfolio"))) { headerRowIndex = i; break; }
+  }
+  if (headerRowIndex === -1) return false;
+
+  const header = rows[headerRowIndex].map(v => String(v || "").trim());
+  const lower  = header.map(h => h.toLowerCase());
+
+  const idxPortfolio = lower.findIndex(h => h.includes("portfolio"));
+  if (idxPortfolio === -1) return false;
+
+  const domainIdx = [];
+  for (let di = 1; di <= 5; di++) {
+    let idx = lower.findIndex(h => h === `d${di}` || h.startsWith(`d${di}:`) || h.includes(`domain ${di}`));
+    if (idx === -1) idx = lower.findIndex(h => h.startsWith(`d${di}`));
+    domainIdx.push(idx);
+  }
+  if (domainIdx.some(i => i === -1)) return false;
+
+  const newPortfolios = [];
+  for (let r = headerRowIndex + 1; r < rows.length; r++) {
+    const row = rows[r];
+    const name = String(row[idxPortfolio] || "").trim();
+    if (!name) continue;
+    if (name.toLowerCase().includes("grand overall")) break;
+    const scores = domainIdx.map(idx => clampScore(parseFloat(row[idx])));
+    newPortfolios.push({ name, scores });
+  }
+  if (!newPortfolios.length) return false;
+  portfolios = newPortfolios;
+  return true;
+}
+
+function loadFromPerPortfolioSheets(wb) {
+  const newPortfolios = [];
+  for (const sheetName of wb.SheetNames) {
+    if (sheetName.trim().toLowerCase() === "overall summary") continue;
+    const ws = wb.Sheets[sheetName];
+    if (!ws) continue;
+
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+    if (!rows || rows.length < 6) continue;
+
+    let headerRowIndex = -1, idxDomain = -1, idxScore = -1;
+    for (let i = 0; i < Math.min(rows.length, 40); i++) {
+      const row = rows[i].map(v => String(v || "").toLowerCase().trim());
+      const dIdx = row.findIndex(c => c === "domain");
+      const sIdx = row.findIndex(c => c.includes("score"));
+      if (dIdx !== -1 && sIdx !== -1) { headerRowIndex = i; idxDomain = dIdx; idxScore = sIdx; break; }
+    }
+    if (headerRowIndex === -1) continue;
+
+    const scores = [];
+    for (let r = headerRowIndex + 1; r < rows.length && scores.length < 5; r++) {
+      const row = rows[r];
+      const domainCell = String(row[idxDomain] || "").trim();
+      if (!domainCell) continue;
+      scores.push(clampScore(parseFloat(row[idxScore])));
+    }
+    if (scores.length !== 5) continue;
+
+    let name = sheetName;
+    const a1 = String((rows[0] && rows[0][0]) || "").trim();
+    if (a1 && a1.includes("—")) name = a1.split("—")[0].trim();
+    newPortfolios.push({ name, scores });
+  }
+  if (!newPortfolios.length) return false;
+  portfolios = newPortfolios;
+  return true;
+}
+
+// Excel Export
 function exportToExcel() {
   const wb = XLSX.utils.book_new();
 
@@ -668,170 +736,7 @@ function exportToExcel() {
   XLSX.writeFile(wb,`VMF_Scorecard_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-// ══════════════════════════════════════════════════════════
-//  EXCEL IMPORT (LOAD)
-// ══════════════════════════════════════════════════════════
-document.getElementById("excelFileInput").addEventListener("change", async (e) => {
-  const file = e.target.files && e.target.files[0];
-  e.target.value = ""; // allow selecting same file again
-  if (!file) return;
-
-  try {
-    const ab = await file.arrayBuffer();
-    const wb = XLSX.read(ab, { type: "array" });
-
-    // Prefer the export-created "Overall Summary" sheet if present
-    const summarySheetName = wb.SheetNames.find(n => n.trim().toLowerCase() === "overall summary".toLowerCase());
-    if (summarySheetName) {
-      const loaded = loadFromOverallSummarySheet(wb, summarySheetName);
-      if (loaded) {
-        toast(`Loaded ${portfolios.length} portfolios from "${summarySheetName}".`);
-        currentTab = 0;
-        render();
-        return;
-      }
-    }
-
-    // Otherwise, attempt to load per-portfolio sheets (export-created)
-    const loaded2 = loadFromPerPortfolioSheets(wb);
-    if (loaded2) {
-      toast(`Loaded ${portfolios.length} portfolios from workbook sheets.`);
-      currentTab = 0;
-      render();
-      return;
-    }
-
-    toast("Could not recognise this Excel format. Please load a file exported by this tool.", "warn");
-  } catch (err) {
-    console.error(err);
-    toast("Failed to load Excel file. Please try again or re-export and reload.", "err");
-  }
-});
-
-/**
- * Format supported (best): sheet "Overall Summary" created by our export.
- * Also supports a user-made summary sheet with header row containing:
- * - Portfolio column (name contains "portfolio")
- * - Domain columns: D1..D5 OR "Domain 1".."Domain 5"
- * - (Optional) Average column, ignored (we compute ourselves)
- */
-function loadFromOverallSummarySheet(wb, sheetName) {
-  const ws = wb.Sheets[sheetName];
-  if (!ws) return false;
-
-  // Read as 2D array (preserves headers)
-  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
-  if (!rows || rows.length < 2) return false;
-
-  // Find header row by searching for a "portfolio" cell
-  let headerRowIndex = -1;
-  for (let i = 0; i < Math.min(rows.length, 30); i++) {
-    const row = rows[i].map(v => String(v || "").toLowerCase().trim());
-    if (row.some(c => c.includes("portfolio"))) { headerRowIndex = i; break; }
-  }
-  if (headerRowIndex === -1) return false;
-
-  const header = rows[headerRowIndex].map(v => String(v || "").trim());
-  const lower  = header.map(h => h.toLowerCase());
-
-  const idxPortfolio = lower.findIndex(h => h.includes("portfolio"));
-  if (idxPortfolio === -1) return false;
-
-  // Detect D1..D5 or Domain 1..5 columns
-  const domainIdx = [];
-  for (let di = 1; di <= 5; di++) {
-    let idx = lower.findIndex(h => h === `d${di}` || h.startsWith(`d${di}:`) || h.includes(`domain ${di}`));
-    if (idx === -1) {
-      // some exports: "D1: Forums & Governance" -> startsWith("d1")
-      idx = lower.findIndex(h => h.startsWith(`d${di}`));
-    }
-    domainIdx.push(idx);
-  }
-
-  // Need at least D1..D5
-  if (domainIdx.some(i => i === -1)) return false;
-
-  const newPortfolios = [];
-  for (let r = headerRowIndex + 1; r < rows.length; r++) {
-    const row = rows[r];
-    const name = String(row[idxPortfolio] || "").trim();
-    if (!name) continue;
-
-    // Stop if grand overall row
-    if (name.toLowerCase().includes("grand overall")) break;
-
-    const scores = domainIdx.map(idx => clampScore(parseFloat(row[idx])));
-    newPortfolios.push({ name, scores });
-  }
-
-  if (!newPortfolios.length) return false;
-  portfolios = newPortfolios;
-  return true;
-}
-
-/**
- * Format supported: per-portfolio sheets created by our export.
- * Each sheet contains a row with "Domain" header and then 5 rows of domains with "Score (1–5)".
- * We'll try to parse any sheet that matches this structure, ignoring "Overall Summary".
- */
-function loadFromPerPortfolioSheets(wb) {
-  const newPortfolios = [];
-
-  for (const sheetName of wb.SheetNames) {
-    if (sheetName.trim().toLowerCase() === "overall summary") continue;
-    const ws = wb.Sheets[sheetName];
-    if (!ws) continue;
-
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
-    if (!rows || rows.length < 6) continue;
-
-    // Find row containing header "Domain" and "Score"
-    let headerRowIndex = -1;
-    let idxDomain = -1;
-    let idxScore = -1;
-
-    for (let i = 0; i < Math.min(rows.length, 40); i++) {
-      const row = rows[i].map(v => String(v || "").toLowerCase().trim());
-      const dIdx = row.findIndex(c => c === "domain");
-      const sIdx = row.findIndex(c => c.includes("score"));
-      if (dIdx !== -1 && sIdx !== -1) {
-        headerRowIndex = i;
-        idxDomain = dIdx;
-        idxScore = sIdx;
-        break;
-      }
-    }
-    if (headerRowIndex === -1) continue;
-
-    const scores = [];
-    for (let r = headerRowIndex + 1; r < rows.length && scores.length < 5; r++) {
-      const row = rows[r];
-      const domainCell = String(row[idxDomain] || "").trim();
-      if (!domainCell) continue;
-      // Domain rows typically begin with "1. Forums..." etc.
-      const s = clampScore(parseFloat(row[idxScore]));
-      scores.push(s);
-    }
-    if (scores.length !== 5) continue;
-
-    // Try to get portfolio name from A1 ("{name} — VMF Maturity Scorecard")
-    let name = sheetName;
-    const a1 = String((rows[0] && rows[0][0]) || "").trim();
-    if (a1 && a1.includes("—")) name = a1.split("—")[0].trim();
-
-    newPortfolios.push({ name, scores });
-  }
-
-  if (!newPortfolios.length) return false;
-
-  // Keep sheet order
-  portfolios = newPortfolios;
-  return true;
-}
-
-// ══════════════════════════════════════════════════════════
-//  POWERPOINT EXPORT (unchanged)
-// ══════════════════════════════════════════════════════════
+// PowerPoint Export (existing function name referenced in UI)
 function exportToPptx() {
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
@@ -843,36 +748,30 @@ function exportToPptx() {
   const ragClr = s => s<2.5?"D32F2F":s<3.5?"F9A825":"2E7D32";
   const ragLbl = s => s<2.5?"RED":s<3.5?"AMBER":"GREEN";
 
-  // Title slide
   let slide = pptx.addSlide();
   slide.background = { color: navy };
   slide.addText("RIA Strategic Portfolio\nVMF Maturity / Adoption Assurance Scorecard", {
-    x: 0.5, y: 1.2, w: 12.3, h: 2,
-    fontSize: 28, fontFace: "Segoe UI", color: "FFFFFF", bold: true, align: "center"
+    x: 0.5, y: 1.2, w: 12.3, h: 2, fontSize: 28, fontFace: "Segoe UI",
+    color: "FFFFFF", bold: true, align: "center"
   });
   const ga = grandAvg();
   slide.addText(`Grand Overall Score: ${ga.toFixed(1)}`, {
-    x: 4, y: 3.5, w: 5.3, h: 0.8,
-    fontSize: 22, fontFace: "Segoe UI", color: ragClr(ga), bold: true, align: "center"
+    x: 4, y: 3.5, w: 5.3, h: 0.8, fontSize: 22, fontFace: "Segoe UI",
+    color: ragClr(ga), bold: true, align: "center"
   });
   slide.addText(`RAG: ${ragLbl(ga)}`, {
-    x: 4, y: 4.2, w: 5.3, h: 0.5,
-    fontSize: 16, fontFace: "Segoe UI", color: ragClr(ga), align: "center"
+    x: 4, y: 4.2, w: 5.3, h: 0.5, fontSize: 16, fontFace: "Segoe UI",
+    color: ragClr(ga), align: "center"
   });
 
-  // Summary slide
   slide = pptx.addSlide();
   slide.addText("Overall Summary — All Portfolios", {
-    x: 0.3, y: 0.2, w: 12.5, h: 0.5,
-    fontSize: 18, fontFace: "Segoe UI", color: navy, bold: true
+    x: 0.3, y: 0.2, w: 12.5, h: 0.5, fontSize: 18, fontFace: "Segoe UI",
+    color: navy, bold: true
   });
 
-  const tblHeader = [
-    { text: "Portfolio", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9 } }
-  ];
-  DOMAINS.forEach(d => {
-    tblHeader.push({ text: `D${d.id}`, options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } });
-  });
+  const tblHeader = [{ text: "Portfolio", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9 } }];
+  DOMAINS.forEach(d => tblHeader.push({ text: `D${d.id}`, options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } }));
   tblHeader.push(
     { text: "Avg", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } },
     { text: "RAG", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } }
@@ -882,9 +781,7 @@ function exportToPptx() {
   portfolios.forEach((p, pi) => {
     const avg = pAvg(pi);
     const row = [{ text: p.name, options: { fontSize: 8, bold: true, color: navy } }];
-    p.scores.forEach(s => {
-      row.push({ text: s.toFixed(1), options: { fontSize: 8, align: "center", color: ragClr(s), bold: true } });
-    });
+    p.scores.forEach(s => row.push({ text: s.toFixed(1), options: { fontSize: 8, align: "center", color: ragClr(s), bold: true } }));
     row.push(
       { text: avg.toFixed(1), options: { fontSize: 9, align: "center", color: ragClr(avg), bold: true } },
       { text: ragLbl(avg), options: { fontSize: 8, align: "center", color: "FFFFFF", fill: { color: ragClr(avg) }, bold: true } }
@@ -904,80 +801,43 @@ function exportToPptx() {
     x: 0.3, y: 0.85, w: 12.7,
     border: { pt: 0.5, color: "CCCCCC" },
     colW: [3.2, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1],
-    rowH: 0.38,
-    autoPage: false
+    rowH: 0.38, autoPage: false
   });
 
-  // Per-portfolio slides (compact cards)
   portfolios.forEach((p, pi) => {
     slide = pptx.addSlide();
     const avg = pAvg(pi);
 
     slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.65, fill: { color: navy } });
-    slide.addText(p.name, {
-      x: 0.3, y: 0.08, w: 10, h: 0.5,
-      fontSize: 16, fontFace: "Segoe UI", color: "FFFFFF", bold: true
-    });
-    slide.addText(`Overall: ${avg.toFixed(1)} (${ragLbl(avg)})`, {
-      x: 10, y: 0.08, w: 3, h: 0.5,
-      fontSize: 14, fontFace: "Segoe UI", color: ragClr(avg), bold: true, align: "right"
-    });
+    slide.addText(p.name, { x: 0.3, y: 0.08, w: 10, h: 0.5, fontSize: 16, fontFace: "Segoe UI", color: "FFFFFF", bold: true });
+    slide.addText(`Overall: ${avg.toFixed(1)} (${ragLbl(avg)})`, { x: 10, y: 0.08, w: 3, h: 0.5, fontSize: 14, fontFace: "Segoe UI", color: ragClr(avg), bold: true, align: "right" });
 
     const cardW = 2.4, cardH = 3.2, gap = 0.18, startX = 0.3, startY = 0.9;
 
     DOMAINS.forEach((d, di) => {
-      const x = startX + di * (cardW + gap);
-      const y = startY;
-      const s = p.scores[di];
+      const x = startX + di * (cardW + gap), y = startY, s = p.scores[di];
 
-      slide.addShape(pptx.ShapeType.rect, {
-        x, y, w: cardW, h: cardH,
-        fill: { color: cream }, line: { color: navy, width: 1 }, rectRadius: 0.08
-      });
-      slide.addShape(pptx.ShapeType.rect, {
-        x, y, w: cardW, h: 0.45,
-        fill: { color: navy }, rectRadius: 0.08
-      });
-      slide.addText(`${d.id}. ${d.name}`, {
-        x: x + 0.08, y, w: cardW - 0.16, h: 0.45,
-        fontSize: 7.5, fontFace: "Segoe UI", color: "FFFFFF", bold: true, valign: "middle"
-      });
+      slide.addShape(pptx.ShapeType.rect, { x, y, w: cardW, h: cardH, fill: { color: cream }, line: { color: navy, width: 1 }, rectRadius: 0.08 });
+      slide.addShape(pptx.ShapeType.rect, { x, y, w: cardW, h: 0.45, fill: { color: navy }, rectRadius: 0.08 });
+      slide.addText(`${d.id}. ${d.name}`, { x: x + 0.08, y, w: cardW - 0.16, h: 0.45, fontSize: 7.5, fontFace: "Segoe UI", color: "FFFFFF", bold: true, valign: "middle" });
 
-      slide.addText(s.toFixed(1), {
-        x, y: y + 0.5, w: cardW, h: 0.5,
-        fontSize: 22, fontFace: "Segoe UI", color: ragClr(s), bold: true, align: "center"
-      });
+      slide.addText(s.toFixed(1), { x, y: y + 0.5, w: cardW, h: 0.5, fontSize: 22, fontFace: "Segoe UI", color: ragClr(s), bold: true, align: "center" });
 
-      slide.addShape(pptx.ShapeType.rect, {
-        x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26,
-        fill: { color: ragClr(s) }, rectRadius: 0.13
-      });
-      slide.addText(ragLbl(s), {
-        x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26,
-        fontSize: 7, fontFace: "Segoe UI", color: "FFFFFF", bold: true, align: "center", valign: "middle"
-      });
+      slide.addShape(pptx.ShapeType.rect, { x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26, fill: { color: ragClr(s) }, rectRadius: 0.13 });
+      slide.addText(ragLbl(s), { x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26, fontSize: 7, fontFace: "Segoe UI", color: "FFFFFF", bold: true, align: "center", valign: "middle" });
 
-      const critText = d.criteria.map(c => `• ${c}`).join("\n");
-      slide.addText(critText, {
-        x: x + 0.1, y: y + 1.4, w: cardW - 0.2, h: 1.7,
-        fontSize: 5.5, fontFace: "Segoe UI", color: "444444", valign: "top", wrap: true
-      });
+      slide.addText(d.criteria.map(c => `• ${c}`).join("\n"), { x: x + 0.1, y: y + 1.4, w: cardW - 0.2, h: 1.7, fontSize: 5.5, fontFace: "Segoe UI", color: "444444", valign: "top", wrap: true });
     });
 
-    slide.addText(
-      "Scoring: Overall = avg of 5 domains (1–5)  |  RED < 2.5  |  AMBER 2.5–3.4  |  GREEN ≥ 3.5",
-      { x: 0.3, y: 7, w: 12.5, h: 0.3, fontSize: 7, fontFace: "Segoe UI", color: "888888" }
-    );
+    slide.addText("Scoring: Overall = avg of 5 domains (1–5)  |  RED < 2.5  |  AMBER 2.5–3.4  |  GREEN ≥ 3.5",
+      { x: 0.3, y: 7, w: 12.5, h: 0.3, fontSize: 7, fontFace: "Segoe UI", color: "888888" });
   });
 
   pptx.writeFile({ fileName: `VMF_Scorecard_${new Date().toISOString().slice(0,10)}.pptx` });
 }
 
-// ══════════════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════════════
+// INIT
 render();
 </script>
-
 </body>
 </html>
