@@ -4,8 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VMF Maturity / Adoption Assurance Scorecard</title>
+
+<!-- SheetJS (Excel read/write) -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<!-- PptxGenJS (PowerPoint export) -->
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -15,14 +19,11 @@
     height: 100%; overflow: hidden;
   }
 
-  /* ── Main layout: sidebar + content ────────────── */
-  .app {
-    display: flex; height: 100vh; overflow: hidden;
-  }
+  .app { display: flex; height: 100vh; overflow: hidden; }
 
-  /* ── Sidebar ───────────────────────────────────── */
+  /* Sidebar */
   .sidebar {
-    width: 230px; min-width: 230px; background: #1a1a6e; color: #fff;
+    width: 250px; min-width: 250px; background: #1a1a6e; color: #fff;
     display: flex; flex-direction: column; overflow: hidden;
   }
   .sidebar-header {
@@ -30,9 +31,7 @@
     text-transform: uppercase; letter-spacing: 1px; color: #a0a0d0;
     border-bottom: 1px solid #2a2a8e;
   }
-  .sidebar-list {
-    flex: 1; overflow-y: auto; padding: 6px 0;
-  }
+  .sidebar-list { flex: 1; overflow-y: auto; padding: 6px 0; }
   .sidebar-list::-webkit-scrollbar { width: 4px; }
   .sidebar-list::-webkit-scrollbar-thumb { background: #4a4aae; border-radius: 2px; }
 
@@ -40,16 +39,13 @@
     display: flex; align-items: center; gap: 6px;
     padding: 9px 14px; cursor: pointer; font-size: 0.76rem;
     font-weight: 500; border-left: 3px solid transparent;
-    transition: all 0.15s; color: #c8c8e8; word-break: break-word;
+    transition: all 0.15s; color: #c8c8e8;
   }
   .sidebar-item:hover { background: #2a2a8e; color: #fff; }
   .sidebar-item.active {
-    background: #2a2a8e; color: #fff; border-left-color: #e8a825;
-    font-weight: 700;
+    background: #2a2a8e; color: #fff; border-left-color: #e8a825; font-weight: 700;
   }
-  .sidebar-item .rag-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
+  .sidebar-item .rag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .sidebar-item .item-close {
     margin-left: auto; background: none; border: none; color: #888;
     cursor: pointer; font-size: 0.65rem; padding: 0 2px; flex-shrink: 0;
@@ -62,23 +58,28 @@
   .sidebar-item.overall-item.active { border-left-color: #2e7d32; }
 
   .sidebar-actions {
-    padding: 10px; border-top: 1px solid #2a2a8e; display: flex; flex-direction: column; gap: 6px;
+    padding: 10px; border-top: 1px solid #2a2a8e;
+    display: flex; flex-direction: column; gap: 6px;
   }
-  .sidebar-actions button {
+  .sidebar-actions button, .sidebar-actions label.btn {
     width: 100%; padding: 7px 10px; border: 1px solid #4a4aae; background: transparent;
     color: #c8c8e8; font-size: 0.72rem; font-weight: 600; border-radius: 6px;
-    cursor: pointer; transition: all 0.15s; text-align: left;
+    cursor: pointer; transition: all 0.15s; text-align: left; display: inline-block;
   }
-  .sidebar-actions button:hover { background: #2a2a8e; color: #fff; }
+  .sidebar-actions button:hover, .sidebar-actions label.btn:hover { background: #2a2a8e; color: #fff; }
   .sidebar-actions button.excel-btn { border-color: #1d6f42; color: #7ee8a8; }
   .sidebar-actions button.excel-btn:hover { background: #1d6f42; color: #fff; }
   .sidebar-actions button.pptx-btn { border-color: #c44325; color: #f0a090; }
   .sidebar-actions button.pptx-btn:hover { background: #c44325; color: #fff; }
-
-  /* ── Main content area ─────────────────────────── */
-  .main {
-    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  .sidebar-actions label.btn.load-btn { border-color: #d1b43a; color: #ffe08a; }
+  .sidebar-actions label.btn.load-btn:hover { background: #d1b43a; color: #1a1a6e; }
+  .sidebar-actions small {
+    color: #bdbde6; font-size: 0.62rem; line-height: 1.35; margin-top: 3px;
   }
+  #excelFileInput { display: none; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   .topbar {
     padding: 10px 20px; background: #fff; border-bottom: 1px solid #e0dcd4;
     display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-height: 46px;
@@ -86,36 +87,20 @@
   .topbar h1 { font-size: 1rem; white-space: nowrap; }
   .topbar h1 span { font-weight: 400; font-size: 0.85rem; }
 
-  .content {
-    flex: 1; overflow-y: auto; padding: 16px 20px;
-  }
+  .content { flex: 1; overflow-y: auto; padding: 16px 20px; }
   .content::-webkit-scrollbar { width: 6px; }
   .content::-webkit-scrollbar-thumb { background: #c8c0b0; border-radius: 3px; }
 
-  /* ── Panels ────────────────────────────────────── */
-  .portfolio-panel { display: none; animation: fadeIn 0.2s ease; }
-  .portfolio-panel.active { display: block; }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  .panel-title-row {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
-  }
+  /* Domain grid (compact) */
+  .panel-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
   .panel-title-row h2 { font-size: 1.05rem; }
   .panel-title-row .edit-name-btn {
     font-size: 0.68rem; padding: 3px 10px; border: 1px solid #1a1a6e;
-    background: transparent; color: #1a1a6e; border-radius: 5px; cursor: pointer;
-    font-weight: 600;
+    background: transparent; color: #1a1a6e; border-radius: 5px; cursor: pointer; font-weight: 600;
   }
   .panel-title-row .edit-name-btn:hover { background: #1a1a6e; color: #fff; }
 
-  /* ── Compact Domain Card Grid ──────────────────── */
-  .domain-grid {
-    display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 10px; margin-bottom: 12px;
-  }
+  .domain-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
   @media (max-width: 1200px) { .domain-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 800px)  { .domain-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 550px)  { .domain-grid { grid-template-columns: 1fr; } }
@@ -130,7 +115,6 @@
   }
   .domain-bar { height: 5px; transition: width 0.5s ease; }
 
-  /* ── Criteria collapsible ──────────────────────── */
   .context-section { padding: 0 8px; }
   .context-toggle {
     width: 100%; background: none; border: none; border-bottom: 1px solid #d4cfc5;
@@ -145,8 +129,8 @@
   .context-toggle .info-icon {
     display: inline-flex; align-items: center; justify-content: center;
     width: 15px; height: 15px; border-radius: 50%;
-    background: #e8a825; color: #fff; font-size: 0.55rem; font-weight: 800;
-    flex-shrink: 0; animation: pulse 2s ease-in-out infinite;
+    background: #e8a825; color: #fff; font-size: 0.55rem; font-weight: 800; flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
   }
   @keyframes pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(232,168,37,0.5); }
@@ -167,24 +151,13 @@
 
   .context-body ul { list-style: disc; padding-left: 14px; margin-bottom: 4px; }
   .context-body ul li { font-size: 0.65rem; line-height: 1.45; color: #333; }
-  .context-body ol {
-    padding-left: 14px; margin-bottom: 6px;
-    counter-reset: anchor-counter; list-style: none;
-  }
+  .context-body ol { padding-left: 14px; margin-bottom: 6px; counter-reset: anchor-counter; list-style: none; }
   .context-body ol li {
-    font-size: 0.65rem; line-height: 1.45; color: #333;
-    counter-increment: anchor-counter;
+    font-size: 0.65rem; line-height: 1.45; color: #333; counter-increment: anchor-counter;
   }
-  .context-body ol li::before {
-    content: counter(anchor-counter) ". ";
-    font-weight: 700; color: #1a1a6e;
-  }
+  .context-body ol li::before { content: counter(anchor-counter) ". "; font-weight: 700; color: #1a1a6e; }
 
-  /* ── Compact Score Slider ──────────────────────── */
-  .domain-body {
-    padding: 8px 10px; display: flex; flex-direction: column;
-    align-items: center; gap: 4px; margin-top: auto;
-  }
+  .domain-body { padding: 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: auto; }
   .score-control { width: 100%; text-align: center; }
   .score-control label { font-size: 0.65rem; font-weight: 600; display: block; }
   .score-display { font-size: 1.5rem; font-weight: 800; transition: color 0.3s; }
@@ -195,19 +168,15 @@
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
-    border-radius: 50%; background: #1a1a6e; border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
+    border-radius: 50%; background: #1a1a6e; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
   }
   input[type="range"]::-moz-range-thumb {
-    width: 18px; height: 18px; border-radius: 50%; background: #1a1a6e;
-    border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
+    width: 18px; height: 18px; border-radius: 50%; background: #1a1a6e; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
   }
 
-  /* ── RAG Badge ───────��─────────────────────────── */
   .rag-badge {
     display: inline-block; padding: 2px 10px; border-radius: 12px;
-    font-size: 0.62rem; font-weight: 700; color: #fff;
-    text-transform: uppercase; letter-spacing: 0.4px;
+    font-size: 0.62rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.4px;
   }
   .rag-red   { background: #d32f2f; }
   .rag-amber { background: #f9a825; color: #333; }
@@ -219,7 +188,6 @@
   .bar-4 { background: #6678a8; }
   .bar-5 { background: #e8a8a0; }
 
-  /* ── Portfolio Overall (compact) ───────────────── */
   .overall-score-section {
     background: #f0ebe0; border-radius: 8px; padding: 14px 20px;
     margin-top: 8px; text-align: center; border: 1.5px solid #1a1a6e;
@@ -236,13 +204,8 @@
   }
   .reset-btn:hover { background: #1a1a6e; color: #fff; }
 
-  /* ── Summary Table ─────────────────────────────── */
-  .summary-table {
-    width: 100%; border-collapse: collapse; font-size: 0.75rem;
-  }
-  .summary-table th, .summary-table td {
-    padding: 7px 8px; text-align: left; border-bottom: 1px solid #d4cfc5;
-  }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  .summary-table th, .summary-table td { padding: 7px 8px; text-align: left; border-bottom: 1px solid #d4cfc5; }
   .summary-table th {
     background: #1a1a6e; color: #fff; font-weight: 600; font-size: 0.68rem;
     position: sticky; top: 0;
@@ -252,35 +215,44 @@
 
   .grand-overall {
     background: #1a1a6e; color: #fff; border-radius: 8px; padding: 16px;
-    margin-top: 16px; text-align: center;
-    display: flex; align-items: center; justify-content: center; gap: 20px;
+    margin-top: 16px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 20px;
   }
   .grand-overall h3 { font-size: 0.85rem; }
   .grand-overall .overall-score-value { font-size: 2.5rem; color: #fff; }
 
-  /* ── Legend (compact) ──────────────────────────── */
   .legend {
     background: #f0ebe0; border-radius: 8px; padding: 10px 14px;
-    margin-top: 12px; border: 1.5px solid #1a1a6e; font-size: 0.72rem;
-    line-height: 1.6;
+    margin-top: 12px; border: 1.5px solid #1a1a6e; font-size: 0.72rem; line-height: 1.6;
   }
-  .legend strong { font-size: 0.72rem; }
   .legend .rag-label-red   { color: #d32f2f; font-weight: 700; }
   .legend .rag-label-amber { color: #e6a400; font-weight: 700; }
   .legend .rag-label-green { color: #2e7d32; font-weight: 700; }
+
+  /* Lightweight toast */
+  .toast {
+    position: fixed; bottom: 14px; right: 14px;
+    background: #1a1a6e; color: #fff;
+    padding: 10px 12px; border-radius: 8px;
+    font-size: 0.75rem; box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    max-width: 420px;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.warn { background: #7a5a00; }
+  .toast.err { background: #8b1f1f; }
 </style>
 </head>
 <body>
 
 <div class="app">
-  <!-- ── Sidebar ─────────────────────────────────── -->
   <div class="sidebar">
     <div class="sidebar-header">Portfolios</div>
     <div class="sidebar-list" id="sidebarList"></div>
     <div class="sidebar-actions" id="sidebarActions"></div>
   </div>
 
-  <!-- ── Main ────────────────────────────────────── -->
   <div class="main">
     <div class="topbar">
       <h1>RIA Strategic Portfolio — VMF Maturity Scorecard <span>(1–5)</span></h1>
@@ -288,6 +260,10 @@
     <div class="content" id="content"></div>
   </div>
 </div>
+
+<div id="toast" class="toast"></div>
+
+<input id="excelFileInput" type="file" accept=".xlsx,.xls" />
 
 <script>
 // ══════════════════════════════════════════════════════════
@@ -394,12 +370,8 @@ function rag(s) {
   return { label:"Green", cls:"rag-green" };
 }
 function barWidth(s) { return ((s/5)*100).toFixed(1)+"%"; }
-function ragColor(cls) {
-  return cls==="rag-red"?"#d32f2f":cls==="rag-amber"?"#e6a400":"#2e7d32";
-}
-function ragDotColor(s) {
-  return s<2.5?"#d32f2f":s<3.5?"#f9a825":"#2e7d32";
-}
+function ragColor(cls) { return cls==="rag-red"?"#d32f2f":cls==="rag-amber"?"#e6a400":"#2e7d32"; }
+function ragDotColor(s) { return s<2.5?"#d32f2f":s<3.5?"#f9a825":"#2e7d32"; }
 function pAvg(pi) {
   const s=portfolios[pi].scores;
   return s.reduce((a,b)=>a+b,0)/s.length;
@@ -407,6 +379,20 @@ function pAvg(pi) {
 function grandAvg() {
   if (!portfolios.length) return 0;
   return portfolios.reduce((sum,_,pi)=>sum+pAvg(pi),0)/portfolios.length;
+}
+function toast(msg, kind="") {
+  const el = document.getElementById("toast");
+  el.className = "toast" + (kind ? " " + kind : "");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"), 3200);
+}
+function clampScore(x) {
+  if (!isFinite(x)) return 3;
+  return Math.min(5, Math.max(1, x));
+}
+function safeSheetName(name) {
+  return String(name || "Sheet").replace(/[\\\/\?\*\[\]:]/g, "").substring(0, 31);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -444,12 +430,10 @@ function renderSidebar() {
     list.appendChild(item);
   });
 
-  // Divider
   const div = document.createElement("div");
   div.className = "sidebar-divider";
   list.appendChild(div);
 
-  // Overall
   const ga = grandAvg();
   const oItem = document.createElement("div");
   oItem.className = "sidebar-item overall-item" + (currentTab===portfolios.length?" active":"");
@@ -460,11 +444,17 @@ function renderSidebar() {
   list.appendChild(oItem);
 
   actions.innerHTML = `
+    <label class="btn load-btn" for="excelFileInput">📂 Load from Excel</label>
     <button onclick="addPortfolio()">+ Add Portfolio</button>
     <button class="excel-btn" onclick="exportToExcel()">📥 Export to Excel</button>
-    <button class="pptx-btn" onclick="exportToPptx()">📊 Export to PowerPoint</button>`;
+    <button class="pptx-btn" onclick="exportToPptx()">📊 Export to PowerPoint</button>
+    <small>
+      Load supports files exported by this tool (best). It can also load a Summary sheet with columns:
+      Portfolio, D1..D5 (or Domain 1..5), or Average.
+    </small>`;
 }
 
+// Panels
 function renderContent() {
   const content = document.getElementById("content");
   content.innerHTML = "";
@@ -572,7 +562,7 @@ function buildOverallHTML() {
       </div>
     </div>
     <div class="legend" style="margin-top:12px">
-      <strong>Scoring:</strong> Overall = average of 5 domains (1–5). Grand Overall = average across all portfolio scores. &nbsp;|&nbsp;
+      <strong>Grand Overall:</strong> average across all portfolio overall scores. &nbsp;|&nbsp;
       <strong>RAG:</strong>
       <span class="rag-label-red">RED</span> &lt; 2.5,
       <span class="rag-label-amber">AMBER</span> 2.5–3.4,
@@ -581,7 +571,7 @@ function buildOverallHTML() {
   return h;
 }
 
-// ══════════════════════════════════════════════════════════
+// ══════════════════════════���═══════════════════════════════
 //  INTERACTIONS
 // ══════════════════════════════════════════════════════════
 function toggleCtx(tid) {
@@ -591,13 +581,13 @@ function toggleCtx(tid) {
 }
 
 function updateScore(pi, di, val) {
-  val = parseFloat(val);
+  val = clampScore(parseFloat(val));
   portfolios[pi].scores[di] = val;
 
   const sid=`p${pi}_d${DOMAINS[di].id}`, r=rag(val);
-  const v=document.getElementById(sid+"_val"), b=document.getElementById(sid+"_rag"), br=document.getElementById(sid+"_bar");
+  const v=document.getElementById(sid+"_val"), badge=document.getElementById(sid+"_rag"), br=document.getElementById(sid+"_bar");
   if(v){v.textContent=val.toFixed(1);v.style.color=ragColor(r.cls);}
-  if(b){b.className="rag-badge "+r.cls;b.textContent=r.label;}
+  if(badge){badge.className="rag-badge "+r.cls;badge.textContent=r.label;}
   if(br){br.style.width=barWidth(val);}
 
   const avg=pAvg(pi), ra=rag(avg);
@@ -628,7 +618,7 @@ function removePortfolio(pi) {
   render();
 }
 
-// ══════════════════════════════════════════════════════════
+// ════════���═════════════════════════════════════════════════
 //  EXCEL EXPORT
 // ══════════════════════════════════════════════════════════
 function exportToExcel() {
@@ -647,24 +637,30 @@ function exportToExcel() {
     data.push([],["Overall VMF Maturity Score",+avg.toFixed(1),rag(avg).label]);
     const ws=XLSX.utils.aoa_to_sheet(data);
     ws["!cols"]=[{wch:48},{wch:14},{wch:12},{wch:58},{wch:58}];
-    XLSX.utils.book_append_sheet(wb,ws,p.name.replace(/[\\\/\?\*\[\]:]/g,"").substring(0,31));
+    XLSX.utils.book_append_sheet(wb,ws,safeSheetName(p.name));
   });
 
-  const sd=[[" VMF Maturity Scorecard — Overall Summary"],[]];
+  const sd=[["VMF Maturity Scorecard — Overall Summary"],[]];
   const hr=["Portfolio"];
   DOMAINS.forEach(d=>hr.push(`D${d.id}: ${d.name}`));
-  hr.push("Average","RAG"); sd.push(hr);
-  portfolios.forEach(p=>{
+  hr.push("Average","RAG");
+  sd.push(hr);
+
+  portfolios.forEach((p,idx)=>{
     const row=[p.name];
     p.scores.forEach(s=>row.push(+s.toFixed(1)));
-    const avg=p.scores.reduce((a,b)=>a+b,0)/p.scores.length;
-    row.push(+avg.toFixed(1),rag(avg).label); sd.push(row);
+    const avg=pAvg(idx);
+    row.push(+avg.toFixed(1),rag(avg).label);
+    sd.push(row);
   });
+
   sd.push([]);
   const gaRow=["Grand Overall (All Portfolios)"];
   DOMAINS.forEach(()=>gaRow.push(""));
   const ga=grandAvg();
-  gaRow.push(+ga.toFixed(1),rag(ga).label); sd.push(gaRow);
+  gaRow.push(+ga.toFixed(1),rag(ga).label);
+  sd.push(gaRow);
+
   const sw=XLSX.utils.aoa_to_sheet(sd);
   sw["!cols"]=[{wch:50},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:14},{wch:12}];
   XLSX.utils.book_append_sheet(wb,sw,"Overall Summary");
@@ -673,7 +669,168 @@ function exportToExcel() {
 }
 
 // ══════════════════════════════════════════════════════════
-//  POWERPOINT EXPORT
+//  EXCEL IMPORT (LOAD)
+// ══════════════════════════════════════════════════════════
+document.getElementById("excelFileInput").addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = ""; // allow selecting same file again
+  if (!file) return;
+
+  try {
+    const ab = await file.arrayBuffer();
+    const wb = XLSX.read(ab, { type: "array" });
+
+    // Prefer the export-created "Overall Summary" sheet if present
+    const summarySheetName = wb.SheetNames.find(n => n.trim().toLowerCase() === "overall summary".toLowerCase());
+    if (summarySheetName) {
+      const loaded = loadFromOverallSummarySheet(wb, summarySheetName);
+      if (loaded) {
+        toast(`Loaded ${portfolios.length} portfolios from "${summarySheetName}".`);
+        currentTab = 0;
+        render();
+        return;
+      }
+    }
+
+    // Otherwise, attempt to load per-portfolio sheets (export-created)
+    const loaded2 = loadFromPerPortfolioSheets(wb);
+    if (loaded2) {
+      toast(`Loaded ${portfolios.length} portfolios from workbook sheets.`);
+      currentTab = 0;
+      render();
+      return;
+    }
+
+    toast("Could not recognise this Excel format. Please load a file exported by this tool.", "warn");
+  } catch (err) {
+    console.error(err);
+    toast("Failed to load Excel file. Please try again or re-export and reload.", "err");
+  }
+});
+
+/**
+ * Format supported (best): sheet "Overall Summary" created by our export.
+ * Also supports a user-made summary sheet with header row containing:
+ * - Portfolio column (name contains "portfolio")
+ * - Domain columns: D1..D5 OR "Domain 1".."Domain 5"
+ * - (Optional) Average column, ignored (we compute ourselves)
+ */
+function loadFromOverallSummarySheet(wb, sheetName) {
+  const ws = wb.Sheets[sheetName];
+  if (!ws) return false;
+
+  // Read as 2D array (preserves headers)
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+  if (!rows || rows.length < 2) return false;
+
+  // Find header row by searching for a "portfolio" cell
+  let headerRowIndex = -1;
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+    const row = rows[i].map(v => String(v || "").toLowerCase().trim());
+    if (row.some(c => c.includes("portfolio"))) { headerRowIndex = i; break; }
+  }
+  if (headerRowIndex === -1) return false;
+
+  const header = rows[headerRowIndex].map(v => String(v || "").trim());
+  const lower  = header.map(h => h.toLowerCase());
+
+  const idxPortfolio = lower.findIndex(h => h.includes("portfolio"));
+  if (idxPortfolio === -1) return false;
+
+  // Detect D1..D5 or Domain 1..5 columns
+  const domainIdx = [];
+  for (let di = 1; di <= 5; di++) {
+    let idx = lower.findIndex(h => h === `d${di}` || h.startsWith(`d${di}:`) || h.includes(`domain ${di}`));
+    if (idx === -1) {
+      // some exports: "D1: Forums & Governance" -> startsWith("d1")
+      idx = lower.findIndex(h => h.startsWith(`d${di}`));
+    }
+    domainIdx.push(idx);
+  }
+
+  // Need at least D1..D5
+  if (domainIdx.some(i => i === -1)) return false;
+
+  const newPortfolios = [];
+  for (let r = headerRowIndex + 1; r < rows.length; r++) {
+    const row = rows[r];
+    const name = String(row[idxPortfolio] || "").trim();
+    if (!name) continue;
+
+    // Stop if grand overall row
+    if (name.toLowerCase().includes("grand overall")) break;
+
+    const scores = domainIdx.map(idx => clampScore(parseFloat(row[idx])));
+    newPortfolios.push({ name, scores });
+  }
+
+  if (!newPortfolios.length) return false;
+  portfolios = newPortfolios;
+  return true;
+}
+
+/**
+ * Format supported: per-portfolio sheets created by our export.
+ * Each sheet contains a row with "Domain" header and then 5 rows of domains with "Score (1–5)".
+ * We'll try to parse any sheet that matches this structure, ignoring "Overall Summary".
+ */
+function loadFromPerPortfolioSheets(wb) {
+  const newPortfolios = [];
+
+  for (const sheetName of wb.SheetNames) {
+    if (sheetName.trim().toLowerCase() === "overall summary") continue;
+    const ws = wb.Sheets[sheetName];
+    if (!ws) continue;
+
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+    if (!rows || rows.length < 6) continue;
+
+    // Find row containing header "Domain" and "Score"
+    let headerRowIndex = -1;
+    let idxDomain = -1;
+    let idxScore = -1;
+
+    for (let i = 0; i < Math.min(rows.length, 40); i++) {
+      const row = rows[i].map(v => String(v || "").toLowerCase().trim());
+      const dIdx = row.findIndex(c => c === "domain");
+      const sIdx = row.findIndex(c => c.includes("score"));
+      if (dIdx !== -1 && sIdx !== -1) {
+        headerRowIndex = i;
+        idxDomain = dIdx;
+        idxScore = sIdx;
+        break;
+      }
+    }
+    if (headerRowIndex === -1) continue;
+
+    const scores = [];
+    for (let r = headerRowIndex + 1; r < rows.length && scores.length < 5; r++) {
+      const row = rows[r];
+      const domainCell = String(row[idxDomain] || "").trim();
+      if (!domainCell) continue;
+      // Domain rows typically begin with "1. Forums..." etc.
+      const s = clampScore(parseFloat(row[idxScore]));
+      scores.push(s);
+    }
+    if (scores.length !== 5) continue;
+
+    // Try to get portfolio name from A1 ("{name} — VMF Maturity Scorecard")
+    let name = sheetName;
+    const a1 = String((rows[0] && rows[0][0]) || "").trim();
+    if (a1 && a1.includes("—")) name = a1.split("—")[0].trim();
+
+    newPortfolios.push({ name, scores });
+  }
+
+  if (!newPortfolios.length) return false;
+
+  // Keep sheet order
+  portfolios = newPortfolios;
+  return true;
+}
+
+// ══════════════════════════════════════════════════════════
+//  POWERPOINT EXPORT (unchanged)
 // ══════════════════════════════════════════════════════════
 function exportToPptx() {
   const pptx = new PptxGenJS();
@@ -686,7 +843,7 @@ function exportToPptx() {
   const ragClr = s => s<2.5?"D32F2F":s<3.5?"F9A825":"2E7D32";
   const ragLbl = s => s<2.5?"RED":s<3.5?"AMBER":"GREEN";
 
-  // ── Title Slide ──────────────────────────────────────
+  // Title slide
   let slide = pptx.addSlide();
   slide.background = { color: navy };
   slide.addText("RIA Strategic Portfolio\nVMF Maturity / Adoption Assurance Scorecard", {
@@ -703,7 +860,7 @@ function exportToPptx() {
     fontSize: 16, fontFace: "Segoe UI", color: ragClr(ga), align: "center"
   });
 
-  // ── Summary Slide ────────────────────────────────────
+  // Summary slide
   slide = pptx.addSlide();
   slide.addText("Overall Summary — All Portfolios", {
     x: 0.3, y: 0.2, w: 12.5, h: 0.5,
@@ -722,8 +879,8 @@ function exportToPptx() {
   );
 
   const tblRows = [tblHeader];
-  portfolios.forEach(p => {
-    const avg = p.scores.reduce((a,b)=>a+b,0)/p.scores.length;
+  portfolios.forEach((p, pi) => {
+    const avg = pAvg(pi);
     const row = [{ text: p.name, options: { fontSize: 8, bold: true, color: navy } }];
     p.scores.forEach(s => {
       row.push({ text: s.toFixed(1), options: { fontSize: 8, align: "center", color: ragClr(s), bold: true } });
@@ -735,7 +892,6 @@ function exportToPptx() {
     tblRows.push(row);
   });
 
-  // Grand overall row
   const gaRow = [{ text: "GRAND OVERALL", options: { fontSize: 9, bold: true, color: "FFFFFF", fill: { color: navy } } }];
   DOMAINS.forEach(() => gaRow.push({ text: "", options: { fill: { color: navy } } }));
   gaRow.push(
@@ -752,12 +908,11 @@ function exportToPptx() {
     autoPage: false
   });
 
-  // ── Per-Portfolio Slides ─────────────────────────────
+  // Per-portfolio slides (compact cards)
   portfolios.forEach((p, pi) => {
     slide = pptx.addSlide();
     const avg = pAvg(pi);
 
-    // Title bar
     slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.65, fill: { color: navy } });
     slide.addText(p.name, {
       x: 0.3, y: 0.08, w: 10, h: 0.5,
@@ -768,7 +923,6 @@ function exportToPptx() {
       fontSize: 14, fontFace: "Segoe UI", color: ragClr(avg), bold: true, align: "right"
     });
 
-    // Domain cards — 5 across
     const cardW = 2.4, cardH = 3.2, gap = 0.18, startX = 0.3, startY = 0.9;
 
     DOMAINS.forEach((d, di) => {
@@ -776,13 +930,10 @@ function exportToPptx() {
       const y = startY;
       const s = p.scores[di];
 
-      // Card background
       slide.addShape(pptx.ShapeType.rect, {
         x, y, w: cardW, h: cardH,
-        fill: { color: cream }, line: { color: navy, width: 1 },
-        rectRadius: 0.08
+        fill: { color: cream }, line: { color: navy, width: 1 }, rectRadius: 0.08
       });
-      // Header
       slide.addShape(pptx.ShapeType.rect, {
         x, y, w: cardW, h: 0.45,
         fill: { color: navy }, rectRadius: 0.08
@@ -792,13 +943,11 @@ function exportToPptx() {
         fontSize: 7.5, fontFace: "Segoe UI", color: "FFFFFF", bold: true, valign: "middle"
       });
 
-      // Score
       slide.addText(s.toFixed(1), {
         x, y: y + 0.5, w: cardW, h: 0.5,
         fontSize: 22, fontFace: "Segoe UI", color: ragClr(s), bold: true, align: "center"
       });
 
-      // RAG badge
       slide.addShape(pptx.ShapeType.rect, {
         x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26,
         fill: { color: ragClr(s) }, rectRadius: 0.13
@@ -808,15 +957,13 @@ function exportToPptx() {
         fontSize: 7, fontFace: "Segoe UI", color: "FFFFFF", bold: true, align: "center", valign: "middle"
       });
 
-      // Criteria (small text)
-      let critText = d.criteria.map(c => `• ${c}`).join("\n");
+      const critText = d.criteria.map(c => `• ${c}`).join("\n");
       slide.addText(critText, {
         x: x + 0.1, y: y + 1.4, w: cardW - 0.2, h: 1.7,
         fontSize: 5.5, fontFace: "Segoe UI", color: "444444", valign: "top", wrap: true
       });
     });
 
-    // Scoring method footer
     slide.addText(
       "Scoring: Overall = avg of 5 domains (1–5)  |  RED < 2.5  |  AMBER 2.5–3.4  |  GREEN ≥ 3.5",
       { x: 0.3, y: 7, w: 12.5, h: 0.3, fontSize: 7, fontFace: "Segoe UI", color: "888888" }
