@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VMF Maturity / Adoption Assurance Scorecard</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #faf8f5; color: #1a1a6e;
+    height: 100%; overflow: hidden;
+  }
+
+  /* ── Main layout: sidebar + content ────────────── */
+  .app {
+    display: flex; height: 100vh; overflow: hidden;
+  }
+
+  /* ── Sidebar ───────────────────────────────────── */
+  .sidebar {
+    width: 230px; min-width: 230px; background: #1a1a6e; color: #fff;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 14px 14px 10px; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; color: #a0a0d0;
+    border-bottom: 1px solid #2a2a8e;
+  }
+  .sidebar-list {
+    flex: 1; overflow-y: auto; padding: 6px 0;
+  }
+  .sidebar-list::-webkit-scrollbar { width: 4px; }
+  .sidebar-list::-webkit-scrollbar-thumb { background: #4a4aae; border-radius: 2px; }
+
+  .sidebar-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 14px; cursor: pointer; font-size: 0.76rem;
+    font-weight: 500; border-left: 3px solid transparent;
+    transition: all 0.15s; color: #c8c8e8; word-break: break-word;
+  }
+  .sidebar-item:hover { background: #2a2a8e; color: #fff; }
+  .sidebar-item.active {
+    background: #2a2a8e; color: #fff; border-left-color: #e8a825;
+    font-weight: 700;
+  }
+  .sidebar-item .rag-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .sidebar-item .item-close {
+    margin-left: auto; background: none; border: none; color: #888;
+    cursor: pointer; font-size: 0.65rem; padding: 0 2px; flex-shrink: 0;
+  }
+  .sidebar-item .item-close:hover { color: #ff6b6b; }
+
+  .sidebar-divider { height: 1px; background: #2a2a8e; margin: 4px 0; }
+
+  .sidebar-item.overall-item { color: #7ee8a8; }
+  .sidebar-item.overall-item.active { border-left-color: #2e7d32; }
+
+  .sidebar-actions {
+    padding: 10px; border-top: 1px solid #2a2a8e; display: flex; flex-direction: column; gap: 6px;
+  }
+  .sidebar-actions button {
+    width: 100%; padding: 7px 10px; border: 1px solid #4a4aae; background: transparent;
+    color: #c8c8e8; font-size: 0.72rem; font-weight: 600; border-radius: 6px;
+    cursor: pointer; transition: all 0.15s; text-align: left;
+  }
+  .sidebar-actions button:hover { background: #2a2a8e; color: #fff; }
+  .sidebar-actions button.excel-btn { border-color: #1d6f42; color: #7ee8a8; }
+  .sidebar-actions button.excel-btn:hover { background: #1d6f42; color: #fff; }
+  .sidebar-actions button.pptx-btn { border-color: #c44325; color: #f0a090; }
+  .sidebar-actions button.pptx-btn:hover { background: #c44325; color: #fff; }
+
+  /* ── Main content area ─────────────────────────── */
+  .main {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .topbar {
+    padding: 10px 20px; background: #fff; border-bottom: 1px solid #e0dcd4;
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0; min-height: 46px;
+  }
+  .topbar h1 { font-size: 1rem; white-space: nowrap; }
+  .topbar h1 span { font-weight: 400; font-size: 0.85rem; }
+
+  .content {
+    flex: 1; overflow-y: auto; padding: 16px 20px;
+  }
+  .content::-webkit-scrollbar { width: 6px; }
+  .content::-webkit-scrollbar-thumb { background: #c8c0b0; border-radius: 3px; }
+
+  /* ── Panels ────────────────────────────────────── */
+  .portfolio-panel { display: none; animation: fadeIn 0.2s ease; }
+  .portfolio-panel.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .panel-title-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+  }
+  .panel-title-row h2 { font-size: 1.05rem; }
+  .panel-title-row .edit-name-btn {
+    font-size: 0.68rem; padding: 3px 10px; border: 1px solid #1a1a6e;
+    background: transparent; color: #1a1a6e; border-radius: 5px; cursor: pointer;
+    font-weight: 600;
+  }
+  .panel-title-row .edit-name-btn:hover { background: #1a1a6e; color: #fff; }
+
+  /* ── Compact Domain Card Grid ──────────────────── */
+  .domain-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 10px; margin-bottom: 12px;
+  }
+  @media (max-width: 1200px) { .domain-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 800px)  { .domain-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 550px)  { .domain-grid { grid-template-columns: 1fr; } }
+
+  .domain-card {
+    border: 1.5px solid #1a1a6e; border-radius: 8px; overflow: hidden;
+    background: #f0ebe0; display: flex; flex-direction: column;
+  }
+  .domain-header {
+    padding: 7px 10px; font-weight: 700; font-size: 0.72rem;
+    color: #fff; background: #1a1a6e; line-height: 1.3;
+  }
+  .domain-bar { height: 5px; transition: width 0.5s ease; }
+
+  /* ── Criteria collapsible ──────────────────────── */
+  .context-section { padding: 0 8px; }
+  .context-toggle {
+    width: 100%; background: none; border: none; border-bottom: 1px solid #d4cfc5;
+    padding: 5px 0; font-weight: 700; font-size: 0.65rem; color: #1a1a6e;
+    cursor: pointer; text-align: left; display: flex; justify-content: space-between;
+    align-items: center; gap: 4px;
+  }
+  .context-toggle .arrow { transition: transform 0.25s; font-size: 0.6rem; }
+  .context-toggle.open .arrow { transform: rotate(90deg); }
+
+  .context-toggle .info-hint { display: inline-flex; align-items: center; gap: 4px; }
+  .context-toggle .info-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #e8a825; color: #fff; font-size: 0.55rem; font-weight: 800;
+    flex-shrink: 0; animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(232,168,37,0.5); }
+    50%      { box-shadow: 0 0 0 4px rgba(232,168,37,0); }
+  }
+  .context-toggle.open .info-icon { animation: none; background: #1a1a6e; }
+  .context-toggle .info-text { font-size: 0.6rem; font-weight: 600; color: #b08a20; font-style: italic; }
+  .context-toggle.open .info-text { color: #1a1a6e; font-style: normal; }
+
+  .context-body { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+  .context-body.open { max-height: 500px; }
+
+  .criteria-header {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 6px 0 2px 0; color: #1a1a6e;
+  }
+  .criteria-header.anchor-label { color: #555; margin-top: 2px; }
+
+  .context-body ul { list-style: disc; padding-left: 14px; margin-bottom: 4px; }
+  .context-body ul li { font-size: 0.65rem; line-height: 1.45; color: #333; }
+  .context-body ol {
+    padding-left: 14px; margin-bottom: 6px;
+    counter-reset: anchor-counter; list-style: none;
+  }
+  .context-body ol li {
+    font-size: 0.65rem; line-height: 1.45; color: #333;
+    counter-increment: anchor-counter;
+  }
+  .context-body ol li::before {
+    content: counter(anchor-counter) ". ";
+    font-weight: 700; color: #1a1a6e;
+  }
+
+  /* ── Compact Score Slider ──────────────────────── */
+  .domain-body {
+    padding: 8px 10px; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; margin-top: auto;
+  }
+  .score-control { width: 100%; text-align: center; }
+  .score-control label { font-size: 0.65rem; font-weight: 600; display: block; }
+  .score-display { font-size: 1.5rem; font-weight: 800; transition: color 0.3s; }
+
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+    border-radius: 3px; background: #d4cfc5; outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: #1a1a6e; border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%; background: #1a1a6e;
+    border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); cursor: pointer;
+  }
+
+  /* ── RAG Badge ───────��─────────────────────────── */
+  .rag-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.62rem; font-weight: 700; color: #fff;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .rag-red   { background: #d32f2f; }
+  .rag-amber { background: #f9a825; color: #333; }
+  .rag-green { background: #2e7d32; }
+
+  .bar-1 { background: #c8c44a; }
+  .bar-2 { background: #bfa76a; }
+  .bar-3 { background: #8db597; }
+  .bar-4 { background: #6678a8; }
+  .bar-5 { background: #e8a8a0; }
+
+  /* ── Portfolio Overall (compact) ───────────────── */
+  .overall-score-section {
+    background: #f0ebe0; border-radius: 8px; padding: 14px 20px;
+    margin-top: 8px; text-align: center; border: 1.5px solid #1a1a6e;
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+  }
+  .overall-score-section h3 { font-size: 0.82rem; }
+  .overall-score-value { font-size: 2rem; font-weight: 800; }
+
+  .reset-btn {
+    display: inline-block; margin-top: 8px; padding: 5px 16px;
+    border: 1.5px solid #1a1a6e; background: transparent; color: #1a1a6e;
+    font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 0.7rem;
+    transition: background 0.2s;
+  }
+  .reset-btn:hover { background: #1a1a6e; color: #fff; }
+
+  /* ── Summary Table ─────────────────────────────── */
+  .summary-table {
+    width: 100%; border-collapse: collapse; font-size: 0.75rem;
+  }
+  .summary-table th, .summary-table td {
+    padding: 7px 8px; text-align: left; border-bottom: 1px solid #d4cfc5;
+  }
+  .summary-table th {
+    background: #1a1a6e; color: #fff; font-weight: 600; font-size: 0.68rem;
+    position: sticky; top: 0;
+  }
+  .summary-table td:nth-child(n+2), .summary-table th:nth-child(n+2) { text-align: center; }
+  .summary-table tbody tr:hover { background: #f5f0e6; }
+
+  .grand-overall {
+    background: #1a1a6e; color: #fff; border-radius: 8px; padding: 16px;
+    margin-top: 16px; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+  }
+  .grand-overall h3 { font-size: 0.85rem; }
+  .grand-overall .overall-score-value { font-size: 2.5rem; color: #fff; }
+
+  /* ── Legend (compact) ──────────────────────────── */
+  .legend {
+    background: #f0ebe0; border-radius: 8px; padding: 10px 14px;
+    margin-top: 12px; border: 1.5px solid #1a1a6e; font-size: 0.72rem;
+    line-height: 1.6;
+  }
+  .legend strong { font-size: 0.72rem; }
+  .legend .rag-label-red   { color: #d32f2f; font-weight: 700; }
+  .legend .rag-label-amber { color: #e6a400; font-weight: 700; }
+  .legend .rag-label-green { color: #2e7d32; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ── Sidebar ─────────────────────────────────── -->
+  <div class="sidebar">
+    <div class="sidebar-header">Portfolios</div>
+    <div class="sidebar-list" id="sidebarList"></div>
+    <div class="sidebar-actions" id="sidebarActions"></div>
+  </div>
+
+  <!-- ── Main ────────────────────────────────────── -->
+  <div class="main">
+    <div class="topbar">
+      <h1>RIA Strategic Portfolio — VMF Maturity Scorecard <span>(1–5)</span></h1>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════════
+const DOMAINS = [
+  {
+    id: 1, name: "Forums & Governance", barClass: "bar-1",
+    criteria: [
+      "Regular EO/Governance forum exists",
+      "Forum / EO pack addresses mandatory criteria / artefacts",
+      "VMF oriented decisions, discussions, direction evidenced and traced"
+    ],
+    anchors: [
+      "No VMF forum or governance evidence",
+      "Forum exists but irregular; decisions not evidenced",
+      "Regular forum; minutes; VMF sometimes used",
+      "VMF pack default; decisions reference VMF",
+      "Actively enforces VMF principles/method; good momentum, outcomes traced"
+    ]
+  },
+  {
+    id: 2, name: "VMF Prioritisation & Investment Decisions", barClass: "bar-2",
+    criteria: [
+      "Evidence of highest-value prioritisation across charters",
+      "Reprioritisation incl. descoping based on charter performance",
+      "Investment decisions & actions registered in EO pack"
+    ],
+    anchors: [
+      "No prioritisation approach",
+      "Narrative or ad hoc prioritisation",
+      "VMF prioritisation metrics for most initiatives",
+      "Prioritisation drives funding & schedule",
+      "Continuous and traceable prioritisation aligned to optimal value"
+    ]
+  },
+  {
+    id: 3, name: "Required Artefacts & SharePoint Hub Hygiene", barClass: "bar-3",
+    criteria: [
+      "Required VMF artefacts present (Charter, Business Case etc)",
+      "Versioning / approval visible",
+      "Registers maintained (supporting artefacts, outcomes updated)"
+    ],
+    anchors: [
+      "Artefacts missing or scattered",
+      "Partial / inconsistent artefacts",
+      "Artefacts complete for most initiatives",
+      "Artefacts current; registers actively used",
+      "Exemplary hygiene; high transparency"
+    ]
+  },
+  {
+    id: 4, name: "Lifecycle & Gate Compliance", barClass: "bar-4",
+    criteria: [
+      "Lifecycle stages / gates defined & used",
+      "Gate approvals evidenced",
+      "Benefits & value revisited at gates",
+      "Evidence of pause / stop / re-scope"
+    ],
+    anchors: [
+      "No lifecycle gates evidenced",
+      "Gate process exists, inconsistently applied",
+      "Gates followed; approvals stored",
+      "Gates actively manage value & risk",
+      "Lifecycle discipline drives optimisation"
+    ]
+  },
+  {
+    id: 5, name: "Roles, Capability & Accountability", barClass: "bar-5",
+    criteria: [
+      "Named VMF roles assigned",
+      "Right people attend forums and support decisions",
+      "VMF actions have owners & due dates (e.g. completing outcomes etc)"
+    ],
+    anchors: [
+      "No roles or accountability evidenced",
+      "Roles are nominal; inconsistent engagement",
+      "Roles assigned and operating",
+      "Roles actively enforce VMF quality",
+      "Ongoing capability uplift embedded"
+    ]
+  }
+];
+
+let portfolios = [
+  { name: "Growth", scores: [3,3,3,3,3] },
+  { name: "Digital Sales & Service (DSS)", scores: [3,3,3,3,3] },
+  { name: "Marketing (Media & Offers)", scores: [3,3,3,3,3] },
+  { name: "Customer Loyalty Platform (CLP)", scores: [3,3,3,3,3] },
+  { name: "Pricing (incl. PSE)", scores: [3,3,3,3,3] },
+  { name: "Next Evolution of Claims (NEOC)", scores: [3,3,3,3,3] },
+  { name: "Customer Communications", scores: [3,3,3,3,3] },
+  { name: "Strategic Transformation", scores: [3,3,3,3,3] },
+  { name: "Growth Office / Retail Growth Office", scores: [3,3,3,3,3] },
+  { name: "Strategic Enablement (Portfolio Exec & Gov)", scores: [3,3,3,3,3] }
+];
+
+// ══════════════════════════════════════════════════════════
+//  UTILITY
+// ══════════════════════════════════════════════════════════
+function rag(s) {
+  if (s < 2.5) return { label:"Red", cls:"rag-red" };
+  if (s < 3.5) return { label:"Amber", cls:"rag-amber" };
+  return { label:"Green", cls:"rag-green" };
+}
+function barWidth(s) { return ((s/5)*100).toFixed(1)+"%"; }
+function ragColor(cls) {
+  return cls==="rag-red"?"#d32f2f":cls==="rag-amber"?"#e6a400":"#2e7d32";
+}
+function ragDotColor(s) {
+  return s<2.5?"#d32f2f":s<3.5?"#f9a825":"#2e7d32";
+}
+function pAvg(pi) {
+  const s=portfolios[pi].scores;
+  return s.reduce((a,b)=>a+b,0)/s.length;
+}
+function grandAvg() {
+  if (!portfolios.length) return 0;
+  return portfolios.reduce((sum,_,pi)=>sum+pAvg(pi),0)/portfolios.length;
+}
+
+// ══════════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════════
+let currentTab = 0; // index < portfolios.length = portfolio, === portfolios.length = overall
+
+function render() {
+  if (currentTab > portfolios.length) currentTab = portfolios.length;
+  renderSidebar();
+  renderContent();
+}
+
+function renderSidebar() {
+  const list = document.getElementById("sidebarList");
+  const actions = document.getElementById("sidebarActions");
+  list.innerHTML = "";
+
+  portfolios.forEach((p, pi) => {
+    const avg = pAvg(pi);
+    const item = document.createElement("div");
+    item.className = "sidebar-item" + (pi===currentTab?" active":"");
+    item.onclick = () => { currentTab=pi; render(); };
+
+    let closeBtn = "";
+    if (portfolios.length > 1) {
+      closeBtn = `<button class="item-close" title="Remove" onclick="event.stopPropagation();removePortfolio(${pi})">✕</button>`;
+    }
+
+    item.innerHTML = `
+      <span class="rag-dot" style="background:${ragDotColor(avg)}"></span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${p.name}</span>
+      <span style="font-size:0.68rem;font-weight:700;color:${ragDotColor(avg)};flex-shrink:0">${avg.toFixed(1)}</span>
+      ${closeBtn}`;
+    list.appendChild(item);
+  });
+
+  // Divider
+  const div = document.createElement("div");
+  div.className = "sidebar-divider";
+  list.appendChild(div);
+
+  // Overall
+  const ga = grandAvg();
+  const oItem = document.createElement("div");
+  oItem.className = "sidebar-item overall-item" + (currentTab===portfolios.length?" active":"");
+  oItem.onclick = () => { currentTab=portfolios.length; render(); };
+  oItem.innerHTML = `
+    <span style="flex:1">📊 Overall Summary</span>
+    <span style="font-size:0.68rem;font-weight:700;color:${ragDotColor(ga)};flex-shrink:0">${ga.toFixed(1)}</span>`;
+  list.appendChild(oItem);
+
+  actions.innerHTML = `
+    <button onclick="addPortfolio()">+ Add Portfolio</button>
+    <button class="excel-btn" onclick="exportToExcel()">📥 Export to Excel</button>
+    <button class="pptx-btn" onclick="exportToPptx()">📊 Export to PowerPoint</button>`;
+}
+
+function renderContent() {
+  const content = document.getElementById("content");
+  content.innerHTML = "";
+
+  if (currentTab === portfolios.length) {
+    content.innerHTML = buildOverallHTML();
+    return;
+  }
+
+  const pi = currentTab;
+  const p = portfolios[pi];
+
+  let html = `
+    <div class="panel-title-row">
+      <h2>${p.name}</h2>
+      <button class="edit-name-btn" onclick="renamePortfolio(${pi})">✏️ Rename</button>
+    </div>
+    <div class="domain-grid">`;
+
+  DOMAINS.forEach((d,di) => {
+    const sid = `p${pi}_d${d.id}`;
+    const tid = `toggle_${sid}`;
+    const score = p.scores[di];
+    const r = rag(score);
+
+    html += `
+      <div class="domain-card">
+        <div class="domain-header">${d.id}. ${d.name}</div>
+        <div class="domain-bar ${d.barClass}" id="${sid}_bar" style="width:${barWidth(score)}"></div>
+        <div class="context-section">
+          <button class="context-toggle" id="${tid}" onclick="toggleCtx('${tid}')">
+            <span class="info-hint">
+              <span class="info-icon">i</span>
+              <span class="info-text">Criteria & Anchors</span>
+            </span>
+            <span class="arrow">▶</span>
+          </button>
+          <div class="context-body" id="${tid}_body">
+            <div class="criteria-header">Criteria</div>
+            <ul>${d.criteria.map(c=>`<li>${c}</li>`).join("")}</ul>
+            <div class="criteria-header anchor-label">Scoring Anchors</div>
+            <ol>${d.anchors.map(a=>`<li>${a}</li>`).join("")}</ol>
+          </div>
+        </div>
+        <div class="domain-body">
+          <div class="score-control">
+            <label>Score (1–5)</label>
+            <div class="score-display" id="${sid}_val" style="color:${ragColor(r.cls)}">${score.toFixed(1)}</div>
+            <input type="range" id="${sid}" min="1" max="5" step="0.1" value="${score}"
+                   oninput="updateScore(${pi},${di},this.value)">
+          </div>
+          <span class="rag-badge ${r.cls}" id="${sid}_rag">${r.label}</span>
+        </div>
+      </div>`;
+  });
+  html += `</div>`;
+
+  const avg = pAvg(pi); const ra = rag(avg);
+  html += `
+    <div class="overall-score-section">
+      <h3>${p.name} — Overall</h3>
+      <div>
+        <div class="overall-score-value" id="p${pi}_overall" style="color:${ragColor(ra.cls)}">${avg.toFixed(1)}</div>
+        <span class="rag-badge ${ra.cls}" id="p${pi}_overall_rag">${ra.label}</span>
+      </div>
+      <button class="reset-btn" onclick="resetPortfolio(${pi})">Reset</button>
+    </div>
+
+    <div class="legend">
+      <strong>Scoring:</strong> Overall = average of 5 domains (1–5) &nbsp;|&nbsp;
+      <strong>RAG:</strong>
+      <span class="rag-label-red">RED</span> &lt; 2.5,
+      <span class="rag-label-amber">AMBER</span> 2.5–3.4,
+      <span class="rag-label-green">GREEN</span> ≥ 3.5
+    </div>`;
+
+  content.innerHTML = html;
+}
+
+function buildOverallHTML() {
+  let h = `<h2 style="font-size:1.05rem;margin-bottom:12px;">Overall Summary — All Portfolios</h2>`;
+  h += `<div style="overflow-x:auto"><table class="summary-table"><thead><tr><th>Portfolio</th>`;
+  DOMAINS.forEach(d => { h += `<th title="${d.name}">D${d.id}</th>`; });
+  h += `<th>Avg</th><th>RAG</th></tr></thead><tbody>`;
+
+  portfolios.forEach((p,pi) => {
+    const avg = pAvg(pi); const r = rag(avg);
+    h += `<tr style="cursor:pointer" onclick="currentTab=${pi};render()"><td style="font-weight:600">${p.name}</td>`;
+    p.scores.forEach(s => {
+      const sr = rag(s);
+      h += `<td style="color:${ragColor(sr.cls)};font-weight:600">${s.toFixed(1)}</td>`;
+    });
+    h += `<td style="font-weight:800;color:${ragColor(r.cls)}">${avg.toFixed(1)}</td>`;
+    h += `<td><span class="rag-badge ${r.cls}">${r.label}</span></td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+
+  const ga = grandAvg(); const gr = rag(ga);
+  h += `
+    <div class="grand-overall">
+      <h3>Grand Overall VMF Maturity Score</h3>
+      <div>
+        <div class="overall-score-value">${ga.toFixed(1)}</div>
+        <span class="rag-badge ${gr.cls}">${gr.label}</span>
+      </div>
+    </div>
+    <div class="legend" style="margin-top:12px">
+      <strong>Scoring:</strong> Overall = average of 5 domains (1–5). Grand Overall = average across all portfolio scores. &nbsp;|&nbsp;
+      <strong>RAG:</strong>
+      <span class="rag-label-red">RED</span> &lt; 2.5,
+      <span class="rag-label-amber">AMBER</span> 2.5–3.4,
+      <span class="rag-label-green">GREEN</span> ≥ 3.5
+    </div>`;
+  return h;
+}
+
+// ══════════════════════════════════════════════════════════
+//  INTERACTIONS
+// ══════════════════════════════════════════════════════════
+function toggleCtx(tid) {
+  const b=document.getElementById(tid), d=document.getElementById(tid+"_body");
+  if(b) b.classList.toggle("open");
+  if(d) d.classList.toggle("open");
+}
+
+function updateScore(pi, di, val) {
+  val = parseFloat(val);
+  portfolios[pi].scores[di] = val;
+
+  const sid=`p${pi}_d${DOMAINS[di].id}`, r=rag(val);
+  const v=document.getElementById(sid+"_val"), b=document.getElementById(sid+"_rag"), br=document.getElementById(sid+"_bar");
+  if(v){v.textContent=val.toFixed(1);v.style.color=ragColor(r.cls);}
+  if(b){b.className="rag-badge "+r.cls;b.textContent=r.label;}
+  if(br){br.style.width=barWidth(val);}
+
+  const avg=pAvg(pi), ra=rag(avg);
+  const o=document.getElementById(`p${pi}_overall`), or2=document.getElementById(`p${pi}_overall_rag`);
+  if(o){o.textContent=avg.toFixed(1);o.style.color=ragColor(ra.cls);}
+  if(or2){or2.className="rag-badge "+ra.cls;or2.textContent=ra.label;}
+
+  renderSidebar();
+}
+
+function resetPortfolio(pi) { portfolios[pi].scores=[3,3,3,3,3]; render(); }
+
+function renamePortfolio(pi) {
+  const n=prompt("Enter new portfolio name:",portfolios[pi].name);
+  if(n&&n.trim()){portfolios[pi].name=n.trim();render();}
+}
+
+function addPortfolio() {
+  const n=prompt("Enter portfolio name:","New Portfolio");
+  if(n&&n.trim()){portfolios.push({name:n.trim(),scores:[3,3,3,3,3]});currentTab=portfolios.length-1;render();}
+}
+
+function removePortfolio(pi) {
+  if(portfolios.length<=1)return;
+  if(!confirm(`Remove "${portfolios[pi].name}"?`))return;
+  portfolios.splice(pi,1);
+  if(currentTab>=portfolios.length)currentTab=portfolios.length-1;
+  render();
+}
+
+// ══════════════════════════════════════════════════════════
+//  EXCEL EXPORT
+// ══════════════════════════════════════════════════════════
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+
+  portfolios.forEach(p => {
+    const data = [[`${p.name} — VMF Maturity Scorecard`],[],
+      ["Domain","Score (1–5)","RAG Status","Criteria","Scoring Anchors"]];
+    DOMAINS.forEach((d,di) => {
+      const s=p.scores[di], r=rag(s);
+      data.push([`${d.id}. ${d.name}`,+s.toFixed(1),r.label,
+        d.criteria.map(c=>`• ${c}`).join("\n"),
+        d.anchors.map((a,i)=>`${i+1}. ${a}`).join("\n")]);
+    });
+    const avg=p.scores.reduce((a,b)=>a+b,0)/p.scores.length;
+    data.push([],["Overall VMF Maturity Score",+avg.toFixed(1),rag(avg).label]);
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws["!cols"]=[{wch:48},{wch:14},{wch:12},{wch:58},{wch:58}];
+    XLSX.utils.book_append_sheet(wb,ws,p.name.replace(/[\\\/\?\*\[\]:]/g,"").substring(0,31));
+  });
+
+  const sd=[[" VMF Maturity Scorecard — Overall Summary"],[]];
+  const hr=["Portfolio"];
+  DOMAINS.forEach(d=>hr.push(`D${d.id}: ${d.name}`));
+  hr.push("Average","RAG"); sd.push(hr);
+  portfolios.forEach(p=>{
+    const row=[p.name];
+    p.scores.forEach(s=>row.push(+s.toFixed(1)));
+    const avg=p.scores.reduce((a,b)=>a+b,0)/p.scores.length;
+    row.push(+avg.toFixed(1),rag(avg).label); sd.push(row);
+  });
+  sd.push([]);
+  const gaRow=["Grand Overall (All Portfolios)"];
+  DOMAINS.forEach(()=>gaRow.push(""));
+  const ga=grandAvg();
+  gaRow.push(+ga.toFixed(1),rag(ga).label); sd.push(gaRow);
+  const sw=XLSX.utils.aoa_to_sheet(sd);
+  sw["!cols"]=[{wch:50},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,sw,"Overall Summary");
+
+  XLSX.writeFile(wb,`VMF_Scorecard_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+// ══════════════════════════════════════════════════════════
+//  POWERPOINT EXPORT
+// ══════════════════════════════════════════════════════════
+function exportToPptx() {
+  const pptx = new PptxGenJS();
+  pptx.layout = "LAYOUT_WIDE";
+  pptx.author = "VMF Scorecard";
+  pptx.title = "VMF Maturity / Adoption Assurance Scorecard";
+
+  const navy = "1A1A6E";
+  const cream = "F0EBE0";
+  const ragClr = s => s<2.5?"D32F2F":s<3.5?"F9A825":"2E7D32";
+  const ragLbl = s => s<2.5?"RED":s<3.5?"AMBER":"GREEN";
+
+  // ── Title Slide ──────────────────────────────────────
+  let slide = pptx.addSlide();
+  slide.background = { color: navy };
+  slide.addText("RIA Strategic Portfolio\nVMF Maturity / Adoption Assurance Scorecard", {
+    x: 0.5, y: 1.2, w: 12.3, h: 2,
+    fontSize: 28, fontFace: "Segoe UI", color: "FFFFFF", bold: true, align: "center"
+  });
+  const ga = grandAvg();
+  slide.addText(`Grand Overall Score: ${ga.toFixed(1)}`, {
+    x: 4, y: 3.5, w: 5.3, h: 0.8,
+    fontSize: 22, fontFace: "Segoe UI", color: ragClr(ga), bold: true, align: "center"
+  });
+  slide.addText(`RAG: ${ragLbl(ga)}`, {
+    x: 4, y: 4.2, w: 5.3, h: 0.5,
+    fontSize: 16, fontFace: "Segoe UI", color: ragClr(ga), align: "center"
+  });
+
+  // ── Summary Slide ────────────────────────────────────
+  slide = pptx.addSlide();
+  slide.addText("Overall Summary — All Portfolios", {
+    x: 0.3, y: 0.2, w: 12.5, h: 0.5,
+    fontSize: 18, fontFace: "Segoe UI", color: navy, bold: true
+  });
+
+  const tblHeader = [
+    { text: "Portfolio", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9 } }
+  ];
+  DOMAINS.forEach(d => {
+    tblHeader.push({ text: `D${d.id}`, options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } });
+  });
+  tblHeader.push(
+    { text: "Avg", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } },
+    { text: "RAG", options: { bold: true, color: "FFFFFF", fill: { color: navy }, fontSize: 9, align: "center" } }
+  );
+
+  const tblRows = [tblHeader];
+  portfolios.forEach(p => {
+    const avg = p.scores.reduce((a,b)=>a+b,0)/p.scores.length;
+    const row = [{ text: p.name, options: { fontSize: 8, bold: true, color: navy } }];
+    p.scores.forEach(s => {
+      row.push({ text: s.toFixed(1), options: { fontSize: 8, align: "center", color: ragClr(s), bold: true } });
+    });
+    row.push(
+      { text: avg.toFixed(1), options: { fontSize: 9, align: "center", color: ragClr(avg), bold: true } },
+      { text: ragLbl(avg), options: { fontSize: 8, align: "center", color: "FFFFFF", fill: { color: ragClr(avg) }, bold: true } }
+    );
+    tblRows.push(row);
+  });
+
+  // Grand overall row
+  const gaRow = [{ text: "GRAND OVERALL", options: { fontSize: 9, bold: true, color: "FFFFFF", fill: { color: navy } } }];
+  DOMAINS.forEach(() => gaRow.push({ text: "", options: { fill: { color: navy } } }));
+  gaRow.push(
+    { text: ga.toFixed(1), options: { fontSize: 10, align: "center", color: ragClr(ga), bold: true, fill: { color: navy } } },
+    { text: ragLbl(ga), options: { fontSize: 9, align: "center", color: "FFFFFF", fill: { color: ragClr(ga) }, bold: true } }
+  );
+  tblRows.push(gaRow);
+
+  slide.addTable(tblRows, {
+    x: 0.3, y: 0.85, w: 12.7,
+    border: { pt: 0.5, color: "CCCCCC" },
+    colW: [3.2, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1, 1.1],
+    rowH: 0.38,
+    autoPage: false
+  });
+
+  // ── Per-Portfolio Slides ─────────────────────────────
+  portfolios.forEach((p, pi) => {
+    slide = pptx.addSlide();
+    const avg = pAvg(pi);
+
+    // Title bar
+    slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 0.65, fill: { color: navy } });
+    slide.addText(p.name, {
+      x: 0.3, y: 0.08, w: 10, h: 0.5,
+      fontSize: 16, fontFace: "Segoe UI", color: "FFFFFF", bold: true
+    });
+    slide.addText(`Overall: ${avg.toFixed(1)} (${ragLbl(avg)})`, {
+      x: 10, y: 0.08, w: 3, h: 0.5,
+      fontSize: 14, fontFace: "Segoe UI", color: ragClr(avg), bold: true, align: "right"
+    });
+
+    // Domain cards — 5 across
+    const cardW = 2.4, cardH = 3.2, gap = 0.18, startX = 0.3, startY = 0.9;
+
+    DOMAINS.forEach((d, di) => {
+      const x = startX + di * (cardW + gap);
+      const y = startY;
+      const s = p.scores[di];
+
+      // Card background
+      slide.addShape(pptx.ShapeType.rect, {
+        x, y, w: cardW, h: cardH,
+        fill: { color: cream }, line: { color: navy, width: 1 },
+        rectRadius: 0.08
+      });
+      // Header
+      slide.addShape(pptx.ShapeType.rect, {
+        x, y, w: cardW, h: 0.45,
+        fill: { color: navy }, rectRadius: 0.08
+      });
+      slide.addText(`${d.id}. ${d.name}`, {
+        x: x + 0.08, y, w: cardW - 0.16, h: 0.45,
+        fontSize: 7.5, fontFace: "Segoe UI", color: "FFFFFF", bold: true, valign: "middle"
+      });
+
+      // Score
+      slide.addText(s.toFixed(1), {
+        x, y: y + 0.5, w: cardW, h: 0.5,
+        fontSize: 22, fontFace: "Segoe UI", color: ragClr(s), bold: true, align: "center"
+      });
+
+      // RAG badge
+      slide.addShape(pptx.ShapeType.rect, {
+        x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26,
+        fill: { color: ragClr(s) }, rectRadius: 0.13
+      });
+      slide.addText(ragLbl(s), {
+        x: x + cardW/2 - 0.4, y: y + 1.02, w: 0.8, h: 0.26,
+        fontSize: 7, fontFace: "Segoe UI", color: "FFFFFF", bold: true, align: "center", valign: "middle"
+      });
+
+      // Criteria (small text)
+      let critText = d.criteria.map(c => `• ${c}`).join("\n");
+      slide.addText(critText, {
+        x: x + 0.1, y: y + 1.4, w: cardW - 0.2, h: 1.7,
+        fontSize: 5.5, fontFace: "Segoe UI", color: "444444", valign: "top", wrap: true
+      });
+    });
+
+    // Scoring method footer
+    slide.addText(
+      "Scoring: Overall = avg of 5 domains (1–5)  |  RED < 2.5  |  AMBER 2.5–3.4  |  GREEN ≥ 3.5",
+      { x: 0.3, y: 7, w: 12.5, h: 0.3, fontSize: 7, fontFace: "Segoe UI", color: "888888" }
+    );
+  });
+
+  pptx.writeFile({ fileName: `VMF_Scorecard_${new Date().toISOString().slice(0,10)}.pptx` });
+}
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+render();
+</script>
+
+</body>
+</html>
